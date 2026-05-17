@@ -1146,8 +1146,21 @@ tbody tr { transition: background var(--transition); }
   .product-grid { grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); }
 }
 @media (max-width: 480px) {
-  .access-grid { grid-template-columns: 1fr 1fr; }
-  .store-select-grid { grid-template-columns: 1fr; }
-  .stats-grid { grid-template-columns: 1fr 1fr; }
-  .dev-store-stats { grid-template-columns: 1fr 1fr; }
+  /* Center and scale the main access title so "SHOP COMPANION" wraps
+     and remains visually centered on narrow viewports */
+  .access-selector h1 {
+    text-align: center;
+    font-size: 2.4rem;      /* slightly larger than base but constrained */
+    line-height: 1;
+    margin: 12px auto 6px;
+    max-width: 92%;
+    display: block;
+    word-break: break-word;
+    letter-spacing: -0.02em;
+  }
+
+  /* small spacing tweak for the logo so layout feels balanced */
+  .access-selector .selector-logo {
+    margin-bottom: 10px;
+  }
 }
