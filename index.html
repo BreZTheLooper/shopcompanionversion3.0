@@ -1,0 +1,1524 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Shop Companion 3.0 — Retail Intelligence Platform</title>
+  <link rel="stylesheet" href="styles.css" />
+  <link rel="stylesheet" href="admin.css" />
+  <link rel="stylesheet" href="customer.css" />
+  <link rel="stylesheet" href="auth.css" />
+
+  <!-- QR Code Generator -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+  <!-- ZXing Barcode/QR Scanner -->
+  <script src="https://unpkg.com/@zxing/library@0.19.1/umd/index.min.js"></script>
+
+  <style>
+    .hidden { display: none !important; }
+    body, html { height: 100%; }
+  </style>
+</head>
+<body class="dark-theme">
+
+<!-- Toast container -->
+<div id="toast-container"></div>
+
+<!-- ═══════════════════════════════════════════
+     AUTH SCREEN
+═══════════════════════════════════════════ -->
+<div id="auth-screen" class="hidden"></div>
+
+<!-- ═══════════════════════════════════════════
+     STORE SELECTOR (Customer)
+═══════════════════════════════════════════ -->
+<div id="store-selector-screen" class="hidden">
+  <div class="store-selector-inner">
+    <img src="logo.png" alt="Shop Companion" class="store-selector-logo"
+         onerror="this.style.display='none'" />
+    <h1 class="store-selector-title">Choose Your Store</h1>
+    <p class="store-selector-greeting" id="storeSelectorGreeting">
+      Welcome! Which store would you like to shop at?
+    </p>
+    <div class="store-select-grid" id="storeSelectGrid">
+      <!-- Grocery -->
+      <div class="store-select-card"
+           style="--card-color:rgba(16,169,107,0.15);--card-border:rgba(16,169,107,0.5);--card-glow:rgba(16,169,107,0.12)"
+           onclick="selectStoreAndEnter('grocery')">
+        <span class="store-select-icon">🛒</span>
+        <div class="store-select-name">JDC Grocery</div>
+        <div class="store-select-desc">Fresh produce, beverages &amp; household essentials</div>
+        <div class="store-select-cats">
+          <span class="store-select-cat">Beverages</span>
+          <span class="store-select-cat">Snacks</span>
+          <span class="store-select-cat">Household</span>
+        </div>
+      </div>
+      <!-- Toy Store -->
+      <div class="store-select-card"
+           style="--card-color:rgba(212,160,23,0.15);--card-border:rgba(212,160,23,0.5);--card-glow:rgba(212,160,23,0.12)"
+           onclick="selectStoreAndEnter('toy')">
+        <span class="store-select-icon">🧸</span>
+        <div class="store-select-name">Toy Kingdom</div>
+        <div class="store-select-desc">Action figures, educational toys &amp; board games</div>
+        <div class="store-select-cats">
+          <span class="store-select-cat">Action Figures</span>
+          <span class="store-select-cat">Educational</span>
+          <span class="store-select-cat">Board Games</span>
+        </div>
+      </div>
+      <!-- School Supplies -->
+      <div class="store-select-card"
+           style="--card-color:rgba(26,95,212,0.15);--card-border:rgba(26,95,212,0.5);--card-glow:rgba(26,95,212,0.12)"
+           onclick="selectStoreAndEnter('school')">
+        <span class="store-select-icon">📚</span>
+        <div class="store-select-name">School Hub</div>
+        <div class="store-select-desc">Notebooks, writing tools &amp; art materials</div>
+        <div class="store-select-cats">
+          <span class="store-select-cat">Notebooks</span>
+          <span class="store-select-cat">Writing Tools</span>
+          <span class="store-select-cat">Art Materials</span>
+        </div>
+      </div>
+    </div>
+    <button class="btn btn-ghost store-selector-back" onclick="backToSelector()">← Back to Menu</button>
+  </div>
+</div>
+
+<!-- Splash -->
+<div id="splash" class="splash-overlay">
+  <div class="splash-inner">
+    <img src="logo.png" alt="Shop Companion" class="splash-logo"
+         onerror="this.style.display='none'" />
+    <div class="splash-title">SHOP COMPANION</div>
+    <div class="splash-sub">v3.0 — Multi-Store Retail Intelligence</div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════
+     ACCESS SELECTOR
+═══════════════════════════════════════════ -->
+<div id="view-selector" class="access-selector">
+  <img src="logo.png" alt="Shop Companion" class="selector-logo"
+       onerror="this.style.display='none'" />
+  <h1>SHOP COMPANION</h1>
+  <p class="lead">v3.0 — Select your access level to continue</p>
+  <div class="access-grid">
+    <div class="access-card blue-accent" onclick="showDevLogin()" tabindex="0" role="button">
+      <img src="Developer Icon.png" alt="Developer" class="access-card-icon-img" onerror="this.style.display='none'" />
+      <div class="access-card-title">Developer</div>
+      <div class="access-card-desc">Manage retailers, subscriptions &amp; platform overview</div>
+    </div>
+    <div class="access-card green-accent" onclick="showAuthScreen('client')" tabindex="0" role="button">
+      <img src="Client Icon.png" alt="Client" class="access-card-icon-img" onerror="this.style.display='none'" />
+      <div class="access-card-title">Client</div>
+      <div class="access-card-desc">Store dashboard, inventory &amp; cashier management</div>
+    </div>
+    <div class="access-card cashier-accent" onclick="showAuthScreen('cashier')" tabindex="0" role="button">
+      <img src="Cashier Icon.png" alt="Cashier" class="access-card-icon-img" onerror="this.style.display='none'" />
+      <div class="access-card-title">Cashier</div>
+      <div class="access-card-desc">Point of sale, checkout &amp; barcode scanning</div>
+    </div>
+    <div class="access-card customer-accent" onclick="showAuthScreen('customer')" tabindex="0" role="button">
+      <img src="Customer Icon.png" alt="Customer" class="access-card-icon-img" onerror="this.style.display='none'" />
+      <div class="access-card-title">Customer</div>
+      <div class="access-card-desc">Browse stores, add to cart &amp; checkout QR</div>
+    </div>
+  </div>
+  <div style="margin-top: 28px; display:flex; gap:10px; justify-content:center;">
+    <button class="btn btn-ghost btn-sm" onclick="toggleTheme()">🌓 Toggle Theme</button>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════
+     DEVELOPER PANEL
+═══════════════════════════════════════════ -->
+<div id="view-dev" class="hidden">
+  <div class="admin-layout">
+    <aside class="sidebar" id="devSidebar">
+      <div class="sidebar-header">
+        <div class="logo">
+          <img src="logo.png" alt="SC" class="logo-img" onclick="toggleDevSidebar()"
+               onerror="this.style.display='none'" />
+          <div class="logo-title">SHOP COMPANION</div>
+          <div class="logo-role">Developer Panel</div>
+        </div>
+      </div>
+      <nav class="sidebar-nav">
+        <a class="nav-item active" data-tab="dev-dashboard" onclick="devSwitchTab('dev-dashboard',this)">
+          <span class="nav-icon">📊</span><span class="nav-label">Dashboard</span>
+        </a>
+        <a class="nav-item" data-tab="dev-retailers" onclick="devSwitchTab('dev-retailers',this)">
+          <span class="nav-icon">🏢</span><span class="nav-label">Clients</span>
+        </a>
+        <a class="nav-item" data-tab="dev-customers" onclick="devSwitchTab('dev-customers',this)">
+          <span class="nav-icon">👥</span><span class="nav-label">Customers</span>
+        </a>
+        <a class="nav-item" data-tab="dev-subscriptions" onclick="devSwitchTab('dev-subscriptions',this)">
+          <span class="nav-icon">💳</span><span class="nav-label">Subscriptions</span>
+        </a>
+        <a class="nav-item" data-tab="dev-stores" onclick="devSwitchTab('dev-stores',this)">
+          <span class="nav-icon">🗂️</span><span class="nav-label">Store Monitor</span>
+        </a>
+      </nav>
+      <a class="nav-switch-btn" onclick="navigateTo('selector')">
+        <span>🔙</span><span>Back to Menu</span>
+      </a>
+      <a class="logout-btn" onclick="logout()">
+        <span>🚪</span><span>Logout</span>
+      </a>
+    </aside>
+
+    <main class="admin-main" id="devMain">
+      <div class="admin-top-right">
+        <button class="btn btn-ghost btn-sm" onclick="toggleTheme()">🌓</button>
+      </div>
+
+      <!-- Dev Dashboard -->
+      <section class="tab-panel" id="tab-dev-dashboard">
+        <div class="page-header">
+          <div><h1>Platform Dashboard</h1><p class="page-subtitle">All retailers &amp; platform metrics at a glance</p></div>
+        </div>
+        <div class="stats-grid" id="devStatsGrid"></div>
+        <div class="dashboard-grid">
+          <div class="card">
+            <h3>Active Retailers</h3><div class="divider"></div>
+            <div id="devRetailerQuick"></div>
+          </div>
+          <div class="card">
+            <h3>Subscription Revenue</h3><div class="divider"></div>
+            <div id="devRevenueOverview"></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Clients Tab -->
+      <section class="tab-panel hidden" id="tab-dev-retailers">
+        <div class="page-header">
+          <div><h1>Clients</h1><p class="page-subtitle">Registered store accounts &amp; subscriptions</p></div>
+          <div class="header-actions">
+            <button class="btn btn-primary" onclick="openAddRetailerModal()">+ Add Client</button>
+          </div>
+        </div>
+        <div class="filter-bar">
+          <div class="search-bar" style="flex:1;max-width:320px">
+            <span class="search-icon">🔍</span>
+            <input type="text" id="retailerSearch" placeholder="Search retailers..." oninput="filterRetailers()" />
+          </div>
+          <select class="form-select" id="retailerStatusFilter" onchange="filterRetailers()" style="max-width:160px">
+            <option value="">All Status</option>
+            <option value="active">Active</option>
+            <option value="expired">Expired</option>
+          </select>
+          <select class="form-select" id="retailerPlanFilter" onchange="filterRetailers()" style="max-width:160px">
+            <option value="">All Plans</option>
+            <option value="PLAN_BASIC">Basic</option>
+            <option value="PLAN_PRO">Pro</option>
+            <option value="PLAN_PREMIUM">Premium</option>
+          </select>
+        </div>
+        <div id="retailersGrid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(340px,1fr));gap:16px"></div>
+      </section>
+
+      <!-- Subscriptions Tab -->
+      <section class="tab-panel hidden" id="tab-dev-subscriptions">
+        <div class="page-header">
+          <div><h1>Subscription Plans</h1><p class="page-subtitle">Platform pricing tiers</p></div>
+        </div>
+        <div id="plansGrid" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:18px;margin-bottom:28px"></div>
+        <div class="card">
+          <h3>Monthly Overview</h3><div class="divider"></div>
+          <div id="subOverviewTable"></div>
+        </div>
+      </section>
+
+      <!-- Customers Tab (Developer Only) -->
+      <section class="tab-panel hidden" id="tab-dev-customers">
+        <div class="page-header">
+          <div><h1>System Customers</h1><p class="page-subtitle">All registered customer accounts across the platform</p></div>
+          <div class="header-actions">
+            <button class="btn btn-ghost btn-sm" onclick="renderDevCustomers()">🔄 Refresh</button>
+          </div>
+        </div>
+        <div class="filter-bar">
+          <div class="search-bar" style="flex:1;max-width:360px">
+            <span class="search-icon">🔍</span>
+            <input type="text" id="devCustSearch" placeholder="Search by email or name…" oninput="filterDevCustomers()" />
+          </div>
+          <select class="form-select" id="devCustStoreFilter" onchange="filterDevCustomers()" style="max-width:180px">
+            <option value="">All Stores</option>
+            <option value="grocery">🛒 JDC Grocery</option>
+            <option value="toy">🧸 Toy Kingdom</option>
+            <option value="school">📚 School Hub</option>
+          </select>
+        </div>
+        <div class="table-wrapper">
+          <table>
+            <thead>
+              <tr>
+                <th>Customer Email</th>
+                <th>Full Name</th>
+                <th>Date Registered</th>
+                <th>Last Login</th>
+                <th>Total Orders</th>
+                <th>Points</th>
+                <th>Status</th>
+              </tr>
+            </thead>
+            <tbody id="devCustomersBody"></tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- Store Monitor Tab -->
+      <section class="tab-panel hidden" id="tab-dev-stores">
+        <div class="page-header">
+          <div><h1>Store Monitor</h1><p class="page-subtitle">Real-time inventory &amp; order overview across all stores</p></div>
+        </div>
+        <div class="stats-grid" id="devStoreStatsGrid">
+          <div class="stat-card">
+            <div class="stat-icon blue">🏪</div>
+            <div><div class="stat-value">3</div><div class="stat-label">Active Stores</div></div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon green">📦</div>
+            <div><div class="stat-value" id="devTotalProducts">45</div><div class="stat-label">Total Products</div></div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon yellow">⚠️</div>
+            <div><div class="stat-value" id="devTotalLowStock">0</div><div class="stat-label">Low Stock Items</div></div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon blue">🛒</div>
+            <div><div class="stat-value" id="devTotalOrders">0</div><div class="stat-label">Total Orders</div></div>
+          </div>
+        </div>
+        <div id="devStoreMonitor"></div>
+        <div class="card" style="margin-top:20px">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;flex-wrap:wrap;gap:10px">
+            <h3>Inventory Browser</h3>
+            <select class="form-select" id="devStoreFilter" onchange="renderDevInventoryTable()" style="max-width:200px">
+              <option value="grocery">🛒 JDC Grocery</option>
+              <option value="toy">🧸 Toy Kingdom</option>
+              <option value="school">📚 School Hub</option>
+            </select>
+          </div>
+          <div class="divider"></div>
+          <div class="table-wrapper">
+            <table>
+              <thead>
+                <tr><th>ID</th><th>Product</th><th>Category</th><th>Price</th><th>Stock</th><th>Status</th><th>Expiry</th></tr>
+              </thead>
+              <tbody id="devInvTableBody"></tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <!-- Retailer Modal -->
+  <div class="modal-overlay hidden" id="modal-retailer">
+    <div class="modal-box">
+      <div class="modal-header">
+        <span class="modal-title" id="retailerModalTitle">Add Retailer</span>
+        <button class="modal-close" onclick="closeModal('modal-retailer')">✕</button>
+      </div>
+      <input type="hidden" id="rEditId" />
+      <div class="form-grid" style="padding:20px 24px">
+        <div class="form-group"><label class="form-label">Client Name *</label><input class="form-input" id="rClientName" placeholder="Juan Dela Cruz" /></div>
+        <div class="form-group"><label class="form-label">Store Name *</label><input class="form-input" id="rStoreName" placeholder="JDC Grocery" /></div>
+        <div class="form-group"><label class="form-label">Email</label><input class="form-input" id="rEmail" type="email" /></div>
+        <div class="form-group"><label class="form-label">Phone</label><input class="form-input" id="rPhone" placeholder="09XXXXXXXXX" /></div>
+        <div class="form-group"><label class="form-label">Location</label><input class="form-input" id="rLocation" placeholder="City, Province" /></div>
+        <div class="form-group"><label class="form-label">Plan</label>
+          <select class="form-select" id="rPlan">
+            <option value="PLAN_BASIC">Basic — ₱499/mo</option>
+            <option value="PLAN_PRO">Pro — ₱999/mo</option>
+            <option value="PLAN_PREMIUM">Premium — ₱1,999/mo</option>
+          </select>
+        </div>
+        <div class="form-group"><label class="form-label">Access Code</label><input class="form-input" id="rAccessCode" placeholder="Auto-generated" /></div>
+        <div class="form-group"><label class="form-label">Subscription End</label><input class="form-input" id="rSubEnd" type="date" /></div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-ghost" onclick="closeModal('modal-retailer')">Cancel</button>
+        <button class="btn btn-primary" onclick="saveRetailer()">Save</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════
+     CLIENT PANEL (Store Owner)
+═══════════════════════════════════════════ -->
+<div id="view-client" class="hidden">
+  <div class="admin-layout">
+    <aside class="sidebar" id="clientSidebar">
+      <div class="sidebar-header">
+        <div class="logo">
+          <img src="logo.png" alt="SC" class="logo-img" onclick="toggleClientSidebar()"
+               onerror="this.style.display='none'" />
+          <div class="logo-title">SHOP COMPANION</div>
+          <div class="logo-role current-store-name">Client Panel</div>
+        </div>
+      </div>
+      <nav class="sidebar-nav">
+        <a class="nav-item active" data-tab="client-dashboard" onclick="clientSwitchTab('client-dashboard',this)">
+          <span class="nav-icon">📊</span><span class="nav-label">Dashboard</span>
+        </a>
+        <a class="nav-item" data-tab="client-inventory" onclick="clientSwitchTab('client-inventory',this)">
+          <span class="nav-icon">📦</span><span class="nav-label">Inventory</span>
+        </a>
+        <a class="nav-item" data-tab="client-scan" onclick="clientSwitchTab('client-scan',this)">
+          <span class="nav-icon">📷</span><span class="nav-label">Scan</span>
+        </a>
+        <a class="nav-item" data-tab="client-orders" onclick="clientSwitchTab('client-orders',this)">
+          <span class="nav-icon">📋</span><span class="nav-label">Orders</span>
+        </a>
+        <a class="nav-item" data-tab="client-cashiers" onclick="clientSwitchTab('client-cashiers',this)">
+          <span class="nav-icon">🧾</span><span class="nav-label">Cashiers</span>
+        </a>
+      </nav>
+      <a class="nav-switch-btn" onclick="navigateTo('selector')">
+        <span>🔙</span><span>Back to Menu</span>
+      </a>
+      <a class="logout-btn" onclick="logout()">
+        <span>🚪</span><span>Logout</span>
+      </a>
+    </aside>
+
+    <main class="admin-main" id="clientMain">
+      <div class="admin-top-right">
+        <button class="btn btn-ghost btn-sm" onclick="toggleTheme()">🌓</button>
+      </div>
+
+      <!-- Client Dashboard -->
+      <section class="tab-panel" id="tab-client-dashboard">
+        <div class="page-header">
+          <div>
+            <h1>Store Dashboard</h1>
+            <p class="page-subtitle">Revenue &amp; performance overview</p>
+            <div id="clientStoreStrip" style="margin-top:8px"></div>
+          </div>
+        </div>
+        <div class="stats-grid" id="clientStatsGrid"></div>
+        <div class="dashboard-grid">
+          <div class="card">
+            <h3>Low Stock Alerts</h3><div class="divider"></div>
+            <div id="clientLowStock"></div>
+          </div>
+          <div class="card">
+            <h3>Recent Orders</h3><div class="divider"></div>
+            <div id="clientRecentOrders"></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Client Inventory -->
+      <section class="tab-panel hidden" id="tab-client-inventory">
+        <div class="page-header">
+          <div><h1>Inventory</h1><p class="page-subtitle">Products, stock &amp; expiry management</p></div>
+          <div class="header-actions">
+            <button class="btn btn-ghost" onclick="clientSwitchTab('client-scan', document.querySelector('[data-tab=client-scan]'))">📷 Scan Barcode</button>
+            <button class="btn btn-primary" onclick="openAddProductModal('client')">+ Add Product</button>
+          </div>
+        </div>
+        <div class="filter-bar">
+          <div class="search-bar" style="flex:1;max-width:300px">
+            <span class="search-icon">🔍</span>
+            <input type="text" id="clientInvSearch" placeholder="Search products..." oninput="filterClientInventory()" />
+          </div>
+          <select class="form-select" id="clientInvCat" onchange="filterClientInventory()" style="max-width:150px">
+            <option value="">All Categories</option>
+          </select>
+          <select class="form-select" id="clientInvSort" onchange="filterClientInventory()" style="max-width:160px">
+            <option value="name">Sort: A–Z</option>
+            <option value="stock-asc">Stock: Low→High</option>
+            <option value="stock-desc">Stock: High→Low</option>
+            <option value="price-asc">Price: Low→High</option>
+          </select>
+          <select class="form-select" id="clientInvStatus" onchange="filterClientInventory()" style="max-width:150px">
+            <option value="">All Status</option>
+            <option value="low">Low Stock</option>
+            <option value="out">Out of Stock</option>
+            <option value="ok">In Stock</option>
+          </select>
+        </div>
+        <div class="table-wrapper">
+          <table>
+            <thead>
+              <tr><th>Product</th><th>Barcode</th><th>Category</th><th>Type</th><th>Price</th><th>Stock</th><th>Expiry</th><th>Status</th><th>Actions</th></tr>
+            </thead>
+            <tbody id="clientInvBody"></tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- ✅ NEW: Client Scan Tab -->
+      <section class="tab-panel hidden" id="tab-client-scan">
+        <div class="page-header">
+          <div><h1>Barcode Scanner</h1><p class="page-subtitle">Scan to add a new product or update existing stock</p></div>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;align-items:start">
+          <div class="card">
+            <h3>📷 Camera Scanner</h3><div class="divider"></div>
+            <div class="scanner-wrap">
+              <video id="clientScanVideo" playsinline></video>
+              <div class="scanner-corner tl"></div><div class="scanner-corner tr"></div>
+              <div class="scanner-corner bl"></div><div class="scanner-corner br"></div>
+              <div class="scanner-line"></div>
+            </div>
+            <div class="scanner-status" id="clientScanStatus">📷 Camera inactive</div>
+            <div class="scanner-actions" style="margin-top:8px">
+              <button class="btn btn-primary" onclick="startClientScanner()">Start Scanner</button>
+              <button class="btn btn-ghost" onclick="stopClientScanner()">Stop</button>
+              <button class="btn btn-ghost" onclick="clientManualBarcode()">⌨️ Manual Entry</button>
+            </div>
+          </div>
+          <div class="card">
+            <h3>📦 Scan Result</h3><div class="divider"></div>
+            <div class="scan-input-row">
+              <input class="form-input" id="clientBarcodeField" placeholder="Scanned or typed barcode…" />
+              <button class="btn btn-primary btn-sm" onclick="processClientBarcode()">Lookup</button>
+            </div>
+            <div id="clientScanResult">
+              <div class="empty-state"><div class="empty-icon">📷</div><p>Scan a barcode to find or add a product</p></div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Client Orders -->
+      <section class="tab-panel hidden" id="tab-client-orders">
+        <div class="page-header">
+          <div><h1>Orders</h1><p class="page-subtitle">Transaction history for your store</p></div>
+        </div>
+        <div class="table-wrapper">
+          <table>
+            <thead><tr><th>Order ID</th><th>Customer</th><th>Date</th><th>Items</th><th>Total</th><th>Status</th><th>Action</th></tr></thead>
+            <tbody id="ordersBody"></tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- Client Cashiers -->
+      <section class="tab-panel hidden" id="tab-client-cashiers">
+        <div class="page-header">
+          <div><h1>Cashier Accounts</h1><p class="page-subtitle">Manage cashier access for your store</p></div>
+          <div class="header-actions">
+            <button class="btn btn-primary" onclick="openAddCashierModal()">+ Add Cashier</button>
+          </div>
+        </div>
+        <div class="card cashier-login-hint" style="margin-bottom:18px">
+          <div style="font-weight:600;color:var(--text);margin-bottom:4px">Cashier Login Format</div>
+          <div style="font-family:var(--font-mono);font-size:12px;color:var(--text-3)" id="cashierLoginHint">
+            Cashiers log in using: <strong id="cashierLoginEmail" style="color:var(--blue)">—</strong>
+          </div>
+        </div>
+        <div class="table-wrapper">
+          <table>
+            <thead><tr><th>Name</th><th>Username</th><th>Added</th><th>Status</th><th>Actions</th></tr></thead>
+            <tbody id="cashiersBody"></tbody>
+          </table>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <!-- Product Modal (Client) -->
+  <div class="modal-overlay hidden" id="modal-product-client">
+    <div class="modal-box">
+      <div class="modal-header">
+        <span class="modal-title" id="prodModalTitle">Add Product</span>
+        <button class="modal-close" onclick="closeModal('modal-product-client')">✕</button>
+      </div>
+      <input type="hidden" id="prodEditId" />
+      <div class="form-grid" style="padding:20px 24px">
+        <div class="form-group"><label class="form-label">Product Name *</label><input class="form-input" id="pName" placeholder="Product name" /></div>
+        <div class="form-group"><label class="form-label">Emoji / Icon</label><input class="form-input" id="pImage" placeholder="🛒" maxlength="2" /></div>
+        <div class="form-group"><label class="form-label">Barcode</label><input class="form-input" id="pBarcode" placeholder="Scan or type barcode" /></div>
+        <div class="form-group"><label class="form-label">Category</label><input class="form-input" id="pCategory" list="catSuggest" placeholder="e.g. Dairy" /></div>
+        <div class="form-group"><label class="form-label">Product Type</label><input class="form-input" id="pType" placeholder="e.g. Fresh Milk" /></div>
+        <div class="form-group"><label class="form-label">Unit</label><input class="form-input" id="pUnit" placeholder="bottle, kg, pack…" /></div>
+        <div class="form-group"><label class="form-label">Price (₱) *</label><input class="form-input" id="pPrice" type="number" min="0" step="0.01" /></div>
+        <div class="form-group"><label class="form-label">Stock Quantity *</label><input class="form-input" id="pStock" type="number" min="0" /></div>
+        <div class="form-group"><label class="form-label">Low Stock Alert At</label><input class="form-input" id="pLowAt" type="number" min="1" value="10" /></div>
+        <div class="form-group"><label class="form-label">Expiry Date</label><input class="form-input" id="pExpiry" type="date" /></div>
+      </div>
+      <datalist id="catSuggest">
+        <option value="Dairy"><option value="Bakery"><option value="Meat"><option value="Produce">
+        <option value="Grains"><option value="Pantry"><option value="Beverages"><option value="Frozen">
+        <option value="Action Figures"><option value="Educational Toys"><option value="Board Games">
+        <option value="Notebooks"><option value="Writing Tools"><option value="Art Materials">
+      </datalist>
+      <div class="modal-footer">
+        <button class="btn btn-ghost" onclick="closeModal('modal-product-client')">Cancel</button>
+        <button class="btn btn-primary" onclick="saveProduct('client')">Save Product</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Cashier Modal -->
+  <div class="modal-overlay hidden" id="modal-cashier">
+    <div class="modal-box" style="max-width:420px">
+      <div class="modal-header">
+        <span class="modal-title">Add Cashier Account</span>
+        <button class="modal-close" onclick="closeModal('modal-cashier')">✕</button>
+      </div>
+      <div style="padding:20px 24px">
+        <div class="form-group" style="margin-bottom:14px">
+          <label class="form-label">Cashier Full Name *</label>
+          <input class="form-input" id="cashierFormName" placeholder="e.g. Maria Santos" />
+        </div>
+        <div class="cashier-login-hint" style="margin-bottom:16px">
+          <div style="font-family:var(--font-mono);font-size:10px;color:var(--blue);text-transform:uppercase;letter-spacing:0.06em;margin-bottom:4px">Login Format</div>
+          <div style="font-family:var(--font-mono);font-size:13px;color:var(--text)" id="cashierLoginFormatHint">storename@cashier.pro</div>
+          <div style="font-size:11px;color:var(--text-muted);margin-top:3px">Cashier uses the store's shared cashier account</div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-ghost" onclick="closeModal('modal-cashier')">Cancel</button>
+        <button class="btn btn-primary" onclick="saveCashierAccount()">Add Cashier</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Receipt Modal -->
+  <div class="modal-overlay hidden" id="modal-receipt">
+    <div class="modal-box" style="max-width:420px">
+      <div class="modal-header">
+        <span class="modal-title">🧾 Receipt</span>
+        <button class="modal-close" onclick="closeModal('modal-receipt')">✕</button>
+      </div>
+      <div style="padding:20px 24px" id="receiptContent"></div>
+      <div class="modal-footer">
+        <button class="btn btn-ghost" onclick="closeModal('modal-receipt')">Close</button>
+        <button class="btn btn-primary" onclick="printReceipt()">🖨️ Print</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════
+     CASHIER PANEL
+═══════════════════════════════════════════ -->
+<div id="view-cashier" class="hidden">
+  <div class="admin-layout">
+    <aside class="sidebar" id="cashierSidebar">
+      <div class="sidebar-header">
+        <div class="logo">
+          <img src="logo.png" alt="SC" class="logo-img" onclick="toggleCashierSidebar()"
+               onerror="this.style.display='none'" />
+          <div class="logo-title">SHOP COMPANION</div>
+          <div class="logo-role current-store-name">Cashier Panel</div>
+        </div>
+      </div>
+      <nav class="sidebar-nav">
+        <a class="nav-item active" data-tab="cashier-dashboard" onclick="cashierSwitchTab('cashier-dashboard',this)">
+          <span class="nav-icon">📊</span><span class="nav-label">Dashboard</span>
+        </a>
+        <a class="nav-item" data-tab="cashier-checkout" onclick="cashierSwitchTab('cashier-checkout',this)">
+          <span class="nav-icon">💳</span><span class="nav-label">Checkout</span>
+        </a>
+        <a class="nav-item" data-tab="cashier-inventory" onclick="cashierSwitchTab('cashier-inventory',this)">
+          <span class="nav-icon">📦</span><span class="nav-label">Inventory</span>
+        </a>
+        <a class="nav-item" data-tab="cashier-scan" onclick="cashierSwitchTab('cashier-scan',this)">
+          <span class="nav-icon">📷</span><span class="nav-label">Scan</span>
+        </a>
+      </nav>
+      <a class="nav-switch-btn" onclick="navigateTo('selector')">
+        <span>🔙</span><span>Back to Menu</span>
+      </a>
+      <a class="logout-btn" onclick="logout()">
+        <span>🚪</span><span>Logout</span>
+      </a>
+    </aside>
+
+    <main class="admin-main" id="cashierMain">
+      <div class="admin-top-right">
+        <button class="btn btn-ghost btn-sm" onclick="toggleTheme()">🌓</button>
+      </div>
+
+      <!-- Cashier Dashboard -->
+      <section class="tab-panel" id="tab-cashier-dashboard">
+        <div class="page-header">
+          <div><h1>Cashier Dashboard</h1><p class="page-subtitle">Today's sales &amp; alerts</p></div>
+        </div>
+        <div class="stats-grid" id="cashierStatsGrid"></div>
+        <div class="dashboard-grid">
+          <div class="card">
+            <h3>Low Stock Items</h3><div class="divider"></div>
+            <div id="cashierLowStock"></div>
+          </div>
+          <div class="card">
+            <h3>Today's Orders</h3><div class="divider"></div>
+            <div id="cashierTodayOrders"></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Cashier Checkout -->
+      <section class="tab-panel hidden" id="tab-cashier-checkout">
+        <div class="page-header">
+          <div><h1>Checkout</h1><p class="page-subtitle">Scan customer QR code to process payment</p></div>
+        </div>
+        <div class="checkout-grid">
+          <div class="card">
+            <h3>📱 Scan Customer QR</h3><div class="divider"></div>
+            <div class="scanner-wrap">
+              <video id="checkoutScanVideo" playsinline></video>
+              <div class="scanner-corner tl"></div><div class="scanner-corner tr"></div>
+              <div class="scanner-corner bl"></div><div class="scanner-corner br"></div>
+              <div class="scanner-line"></div>
+            </div>
+            <div class="scanner-status" id="checkoutScanStatus">📷 Camera inactive</div>
+            <div class="scanner-actions" style="margin-top:8px">
+              <button class="btn btn-primary" onclick="startCheckoutScanner()">Start Scanner</button>
+              <button class="btn btn-ghost" onclick="stopCheckoutScanner()">Stop</button>
+              <button class="btn btn-ghost" onclick="manualQREntry()">⌨️ Manual Entry</button>
+            </div>
+          </div>
+          <div class="card">
+            <h3>📦 Order Preview</h3><div class="divider"></div>
+            <div id="checkoutOrderContent">
+              <div class="empty-state"><div class="empty-icon">📷</div><p>Scan a customer QR code to load their order</p></div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Cashier Inventory -->
+      <section class="tab-panel hidden" id="tab-cashier-inventory">
+        <div class="page-header">
+          <div><h1>Inventory</h1><p class="page-subtitle">View &amp; update stock (read-only pricing)</p></div>
+          <div class="header-actions">
+            <button class="btn btn-ghost" onclick="cashierSwitchTab('cashier-scan', document.querySelector('[data-tab=cashier-scan]'))">📷 Scan Barcode</button>
+            <button class="btn btn-primary" onclick="openAddProductModal('cashier')">+ Add Product</button>
+          </div>
+        </div>
+        <div class="filter-bar">
+          <div class="search-bar" style="flex:1;max-width:300px">
+            <span class="search-icon">🔍</span>
+            <input type="text" id="cashierInvSearch" placeholder="Search products..." oninput="filterCashierInventory()" />
+          </div>
+          <select class="form-select" id="cashierInvCat" onchange="filterCashierInventory()" style="max-width:150px">
+            <option value="">All Categories</option>
+          </select>
+          <select class="form-select" id="cashierInvSort" onchange="filterCashierInventory()" style="max-width:160px">
+            <option value="name">Sort: A–Z</option>
+            <option value="stock-asc">Stock: Low→High</option>
+            <option value="price-asc">Price: Low→High</option>
+          </select>
+        </div>
+        <div class="table-wrapper">
+          <table>
+            <thead><tr><th>Product</th><th>Category</th><th>Type</th><th>Price</th><th>Stock</th><th>Expiry</th><th>Status</th><th>Edit Stock</th></tr></thead>
+            <tbody id="cashierInvBody"></tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- ✅ NEW: Cashier Scan Tab -->
+      <section class="tab-panel hidden" id="tab-cashier-scan">
+        <div class="page-header">
+          <div><h1>Barcode Scanner</h1><p class="page-subtitle">Quick product entry or stock lookup via barcode</p></div>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;align-items:start">
+          <div class="card">
+            <h3>📷 Camera Scanner</h3><div class="divider"></div>
+            <div class="scanner-wrap">
+              <video id="cashierScanTabVideo" playsinline></video>
+              <div class="scanner-corner tl"></div><div class="scanner-corner tr"></div>
+              <div class="scanner-corner bl"></div><div class="scanner-corner br"></div>
+              <div class="scanner-line"></div>
+            </div>
+            <div class="scanner-status" id="cashierScanTabStatus">📷 Camera inactive</div>
+            <div class="scanner-actions" style="margin-top:8px">
+              <button class="btn btn-primary" onclick="startCashierScanTab()">Start Scanner</button>
+              <button class="btn btn-ghost" onclick="stopCashierScanTab()">Stop</button>
+              <button class="btn btn-ghost" onclick="cashierManualBarcode()">⌨️ Manual Entry</button>
+            </div>
+          </div>
+          <div class="card">
+            <h3>🔍 Lookup Result</h3><div class="divider"></div>
+            <div class="scan-input-row">
+              <input class="form-input" id="cashierBarcodeField" placeholder="Scanned or typed barcode…" />
+              <button class="btn btn-primary btn-sm" onclick="processCashierBarcode()">Lookup</button>
+            </div>
+            <div id="cashierScanResult">
+              <div class="empty-state"><div class="empty-icon">📷</div><p>Scan a barcode to look up a product</p></div>
+            </div>
+          </div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <!-- Cashier Product Modal -->
+  <div class="modal-overlay hidden" id="modal-product-cashier">
+    <div class="modal-box">
+      <div class="modal-header">
+        <span class="modal-title">Add / Edit Product</span>
+        <button class="modal-close" onclick="closeModal('modal-product-cashier')">✕</button>
+      </div>
+      <input type="hidden" id="prodEditIdCashier" />
+      <div class="form-grid" style="padding:20px 24px">
+        <div class="form-group"><label class="form-label">Product Name *</label><input class="form-input" id="pNameC" placeholder="Product name" /></div>
+        <div class="form-group"><label class="form-label">Emoji</label><input class="form-input" id="pImageC" placeholder="🛒" maxlength="2" /></div>
+        <div class="form-group"><label class="form-label">Barcode</label><input class="form-input" id="pBarcodeC" placeholder="Scan or type barcode" /></div>
+        <div class="form-group"><label class="form-label">Category</label><input class="form-input" id="pCategoryC" list="catSuggestC" placeholder="Dairy" /></div>
+        <div class="form-group"><label class="form-label">Product Type</label><input class="form-input" id="pTypeC" placeholder="Fresh Milk" /></div>
+        <div class="form-group"><label class="form-label">Unit</label><input class="form-input" id="pUnitC" placeholder="bottle, kg…" /></div>
+        <div class="form-group"><label class="form-label">Price (₱) *</label><input class="form-input" id="pPriceC" type="number" min="0" step="0.01" /></div>
+        <div class="form-group"><label class="form-label">Stock *</label><input class="form-input" id="pStockC" type="number" min="0" /></div>
+        <div class="form-group"><label class="form-label">Low Stock Alert</label><input class="form-input" id="pLowAtC" type="number" min="1" value="10" /></div>
+        <div class="form-group"><label class="form-label">Expiry Date</label><input class="form-input" id="pExpiryC" type="date" /></div>
+      </div>
+      <datalist id="catSuggestC">
+        <option value="Dairy"><option value="Bakery"><option value="Meat"><option value="Beverages">
+        <option value="Action Figures"><option value="Educational Toys"><option value="Board Games">
+        <option value="Notebooks"><option value="Writing Tools"><option value="Art Materials">
+      </datalist>
+      <div class="modal-footer">
+        <button class="btn btn-ghost" onclick="closeModal('modal-product-cashier')">Cancel</button>
+        <button class="btn btn-primary" onclick="saveProduct('cashier')">Save</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Cashier Receipt Modal -->
+  <div class="modal-overlay hidden" id="modal-receipt-cashier">
+    <div class="modal-box" style="max-width:420px">
+      <div class="modal-header">
+        <span class="modal-title">🧾 Receipt</span>
+        <button class="modal-close" onclick="closeModal('modal-receipt-cashier')">✕</button>
+      </div>
+      <div style="padding:20px 24px" id="receiptContentCashier"></div>
+      <div class="modal-footer">
+        <button class="btn btn-ghost" onclick="closeModal('modal-receipt-cashier')">Close</button>
+        <button class="btn btn-primary" onclick="printReceiptCashier()">🖨️ Print</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════
+     CUSTOMER PANEL
+═══════════════════════════════════════════ -->
+<div id="view-customer" class="hidden">
+
+  <!-- Terms Gate -->
+  <div id="termsGate" class="terms-screen">
+    <h1>Terms &amp; Conditions</h1>
+    <p class="lead">Please read and accept the terms before accessing Shop Companion</p>
+
+    <div class="terms-box">
+      <h4>1. Acceptance of Terms</h4>
+      <p>By accessing or using Shop Companion, you acknowledge that you have read, understood, and agreed to these Terms and Conditions. If you do not agree, you must not use the service.</p>
+
+      <h4>2. Use of Service</h4>
+      <p>The service allows you to browse products, manage a shopping cart, and generate a checkout QR code for cashier validation. Any misuse, including attempts to bypass payment or exploit system errors, is strictly prohibited.</p>
+
+      <h4>3. Data Privacy</h4>
+      <p>Shop Companion collects basic personal information (name, email, phone) to facilitate transactions. Data is stored locally and not sold to third parties. We comply with the Philippine Data Privacy Act (RA 10173).</p>
+
+      <h4>4. Accuracy of Information</h4>
+      <p>While we strive for accuracy, product pricing and availability are ultimately determined at the cashier's system.</p>
+
+      <h4>5. Rewards Program</h4>
+      <p>Customers earn 1 point per ₱10 spent. Points may be redeemed for discounts subject to availability. Points have no cash value and are non-transferable.</p>
+
+      <h4>6. Multi-Store Access</h4>
+      <p>One account works across all stores. However, your cart is store-specific and cannot mix items across stores. When switching stores, your cart for that store is loaded separately.</p>
+
+      <h4>7. Transactions and Payments</h4>
+      <p>Shop Companion serves as a facilitating system. All disputes must be resolved directly with the retailer. The generated QR code is a request for checkout, not a payment confirmation.</p>
+
+      <h4>8. Limitation of Liability</h4>
+      <p>Shop Companion shall not be liable for price discrepancies, availability issues, service interruptions, or any damages arising from use of this platform.</p>
+
+      <h4>9. Governing Law</h4>
+      <p>These Terms shall be governed by the laws of the Republic of the Philippines. Disputes are subject to Philippine courts.</p>
+
+      <h4>10. Contact</h4>
+      <p>For concerns or data privacy requests: astechsolutions@gmail.com | Philippines</p>
+    </div>
+
+    <div class="terms-agree-row">
+      <input type="checkbox" id="termsCheck" />
+      <label for="termsCheck">I have read and agree to the Terms &amp; Conditions</label>
+    </div>
+    <div style="margin-top:20px;display:flex;gap:12px">
+      <button class="btn btn-ghost" onclick="navigateTo('selector')">← Back</button>
+      <button class="btn btn-primary" onclick="acceptTerms()">Accept &amp; Continue</button>
+    </div>
+  </div>
+
+  <!-- Customer App -->
+  <div id="custApp" class="hidden">
+    <!-- Mobile Bottom Nav -->
+    <nav class="cust-bottom-nav" id="custBottomNav">
+      <div class="cust-bottom-nav-inner">
+        <button class="cust-bnav-btn active" data-tab="shop" onclick="custSwitchTab('shop',this);syncBottomNav(this)">
+          <span class="cust-bnav-icon">🛍</span><span class="cust-bnav-label">Shop</span>
+        </button>
+        <button class="cust-bnav-btn" data-tab="scan" onclick="custSwitchTab('scan',this);syncBottomNav(this)">
+          <span class="cust-bnav-icon">📷</span><span class="cust-bnav-label">Scan</span>
+        </button>
+        <button class="cust-bnav-btn" data-tab="cart" onclick="custSwitchTab('cart',this);syncBottomNav(this)">
+          <span class="cust-bnav-icon">🛒</span><span class="cust-bnav-label">Cart</span>
+          <span class="cust-bnav-badge" id="bnavCartBadge">0</span>
+        </button>
+        <button class="cust-bnav-btn" data-tab="qr" onclick="custSwitchTab('qr',this);syncBottomNav(this)">
+          <span class="cust-bnav-icon">📱</span><span class="cust-bnav-label">My QR</span>
+        </button>
+        <button class="cust-bnav-btn" data-tab="rewards" onclick="custSwitchTab('rewards',this);syncBottomNav(this)">
+          <span class="cust-bnav-icon">⭐</span><span class="cust-bnav-label">Rewards</span>
+        </button>
+      </div>
+    </nav>
+
+    <!-- Header -->
+    <header class="cust-header">
+      <div class="cust-header-inner">
+        <div class="cust-logo">
+          <img src="logo.png" alt="SC" class="cust-logo-img" onerror="this.style.display='none'" />
+          <div>
+            <div class="cust-logo-title">SHOP COMPANION</div>
+            <div class="cust-logo-sub" id="custStoreLabel">Customer View</div>
+          </div>
+        </div>
+        <div class="cust-user">
+          <span id="custWelcome">👋 Guest</span>
+          <button class="btn btn-ghost btn-sm" id="custStoreBtn" onclick="switchStore()" style="display:none">🏪 Switch Store</button>
+          <button class="btn btn-outline btn-sm" onclick="continueAsGuest()">Login</button>
+          <button class="btn btn-ghost btn-sm" onclick="toggleTheme()">🌓</button>
+          <button class="btn btn-ghost btn-sm" onclick="navigateTo('selector')">← Exit</button>
+        </div>
+      </div>
+      <div class="cust-tabs-bar">
+        <div class="cust-tabs">
+          <button class="cust-tab active" data-tab="shop" onclick="custSwitchTab('shop',this)">🛍 Shop</button>
+          <button class="cust-tab" data-tab="scan" onclick="custSwitchTab('scan',this)">📷 Scan</button>
+          <button class="cust-tab" data-tab="lists" onclick="custSwitchTab('lists',this)">📝 My Lists</button>
+          <button class="cust-tab" data-tab="cart" onclick="custSwitchTab('cart',this)">🛒 Cart <span class="cart-badge" id="cartBadge">0</span></button>
+          <button class="cust-tab" data-tab="qr" onclick="custSwitchTab('qr',this)">📱 My QR</button>
+          <button class="cust-tab" data-tab="rewards" onclick="custSwitchTab('rewards',this)">⭐ Rewards</button>
+        </div>
+      </div>
+    </header>
+
+    <main class="cust-main">
+      <!-- Shop -->
+      <section class="cust-panel" id="cpanel-shop">
+        <div class="shop-toolbar">
+          <div class="search-bar" style="flex:1;max-width:340px">
+            <span class="search-icon">🔍</span>
+            <input type="text" id="shopSearch" placeholder="Search products, barcodes…" oninput="filterShop()" />
+          </div>
+          <select class="form-select" id="shopCategory" onchange="filterShop()" style="max-width:150px">
+            <option value="">All Categories</option>
+          </select>
+          <select class="form-select" id="shopSort" onchange="filterShop()" style="max-width:160px">
+            <option value="name">Sort: A–Z</option>
+            <option value="price-asc">Price: Low→High</option>
+            <option value="price-desc">Price: High→Low</option>
+            <option value="stock-desc">Availability</option>
+          </select>
+        </div>
+        <div class="category-pills" id="categoryPills"></div>
+        <div class="product-grid" id="productGrid"></div>
+      </section>
+
+      <!-- Scan Tab -->
+      <section class="cust-panel hidden" id="cpanel-scan">
+        <h2 style="margin-bottom:14px">📷 Barcode Scanner</h2>
+        <p style="color:var(--text-3);font-size:13px;margin-bottom:18px">Scan a product barcode to add it directly to your cart.</p>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;align-items:start">
+          <div>
+            <div class="scanner-wrap" style="max-width:380px">
+              <video id="shopScanVideo" playsinline></video>
+              <div class="scanner-corner tl"></div><div class="scanner-corner tr"></div>
+              <div class="scanner-corner bl"></div><div class="scanner-corner br"></div>
+              <div class="scanner-line"></div>
+            </div>
+            <div class="scanner-status" id="shopScanStatus">📷 Camera inactive</div>
+            <div class="scanner-actions" style="margin-top:10px">
+              <button class="btn btn-primary" onclick="startShopScanner()">Start Camera</button>
+              <button class="btn btn-ghost" onclick="stopShopScanner()">Stop</button>
+              <button class="btn btn-ghost" onclick="manualEntry('Enter barcode:',handleShopBarcodeManual)">⌨️ Manual</button>
+            </div>
+          </div>
+          <div class="card">
+            <h3>Scan Result</h3><div class="divider"></div>
+            <div id="shopScanResult">
+              <div class="empty-state"><div class="empty-icon">🔍</div><p>Scan a barcode to find a product</p></div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Lists -->
+      <section class="cust-panel hidden" id="cpanel-lists">
+        <div class="lists-header">
+          <h2>My Shopping Lists</h2>
+          <button class="btn btn-primary" onclick="openNewListModal()">+ New List</button>
+        </div>
+        <div id="listsContainer"></div>
+      </section>
+
+      <!-- Cart -->
+      <section class="cust-panel hidden" id="cpanel-cart">
+        <div class="cart-layout">
+          <div>
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">
+              <h2>Shopping Cart</h2>
+              <button class="btn btn-ghost btn-sm" onclick="clearCart()">Clear All</button>
+            </div>
+            <div id="cartItems"></div>
+            <div style="display:flex;gap:8px;margin-top:14px">
+              <input class="form-input" id="newListName" placeholder="Save cart as list…" style="flex:1" />
+              <button class="btn btn-ghost" onclick="saveCartAsList()">💾 Save List</button>
+            </div>
+          </div>
+          <div>
+            <div class="card cart-summary-card">
+              <h3>Order Summary</h3><div class="divider"></div>
+              <div id="cartSummary"></div>
+              <div style="margin-top:12px">
+                <label class="form-label">Voucher Code</label>
+                <div class="voucher-row">
+                  <input class="form-input" id="voucherInput" placeholder="e.g. SAVE50" />
+                  <button class="btn btn-ghost btn-sm" onclick="applyVoucher()">Apply</button>
+                </div>
+                <div id="voucherMsg" class="voucher-applied"></div>
+              </div>
+              <button class="btn btn-success btn-lg w-full" style="margin-top:16px"
+                      onclick="custSwitchTab('qr', document.querySelector('.cust-tab[data-tab=qr]'))">
+                Proceed to QR →
+              </button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- QR Tab -->
+      <section class="cust-panel hidden" id="cpanel-qr">
+        <div class="qr-layout">
+          <div class="card" style="text-align:center;max-width:440px;margin:0 auto">
+            <h2>Your Checkout QR</h2>
+            <p style="color:var(--text-3);font-size:13px;margin:8px 0 20px">Show this to the cashier to process your payment</p>
+            <div id="qrOutput" style="display:flex;justify-content:center;margin:0 auto 16px"></div>
+            <div id="qrCartSummary" style="margin-bottom:16px"></div>
+            <div style="display:flex;gap:10px;flex-wrap:wrap;justify-content:center">
+              <button class="btn btn-primary" onclick="regenerateQR()">🔄 Regenerate</button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Rewards -->
+      <section class="cust-panel hidden" id="cpanel-rewards">
+        <h2 style="margin-bottom:18px">⭐ Rewards &amp; Vouchers</h2>
+        <div class="points-display" style="max-width:340px;margin-bottom:28px">
+          <div class="points-number" id="rewardsPoints">0</div>
+          <div class="points-label">Reward Points</div>
+          <div style="font-size:13px;opacity:0.8;margin-top:8px">1 point per ₱10 spent</div>
+        </div>
+        <h3 style="margin-bottom:14px">Available Vouchers</h3>
+        <div class="rewards-grid" id="rewardsVouchers"></div>
+      </section>
+    </main>
+
+    <!-- Customer Modals -->
+
+    <div class="modal-overlay hidden" id="modal-new-list">
+      <div class="modal-box" style="max-width:380px">
+        <div class="modal-header"><span class="modal-title">Create New List</span><button class="modal-close" onclick="closeModal('modal-new-list')">✕</button></div>
+        <div style="padding:16px 24px">
+          <label class="form-label">List Name *</label>
+          <input class="form-input" id="newListNameModal" placeholder="e.g. Weekly Groceries" />
+        </div>
+        <div class="modal-footer">
+          <button class="btn btn-ghost" onclick="closeModal('modal-new-list')">Cancel</button>
+          <button class="btn btn-primary" onclick="createNewList()">Create</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="modal-overlay hidden" id="modal-add-to-list">
+      <div class="modal-box" style="max-width:380px">
+        <div class="modal-header"><span class="modal-title">Add to List</span><button class="modal-close" onclick="closeModal('modal-add-to-list')">✕</button></div>
+        <div style="padding:16px 24px">
+          <p id="addToListProductName" style="margin-bottom:14px;color:var(--text-2)"></p>
+          <div id="addToListOptions"></div>
+        </div>
+        <div class="modal-footer"><button class="btn btn-ghost" onclick="closeModal('modal-add-to-list')">Close</button></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Core view switcher -->
+<script>
+  function showView(name) {
+    const ALL = ['selector','dev','client','cashier','customer'];
+    ALL.forEach(v => {
+      const el = document.getElementById('view-' + v);
+      if (el) el.classList.toggle('hidden', v !== name);
+    });
+  }
+
+  function navigateTo(view) {
+    if (view === 'selector') {
+      ['auth-screen','store-selector-screen'].forEach(id => {
+        document.getElementById(id)?.classList.add('hidden');
+      });
+      showView('selector');
+      return;
+    }
+    if (view === 'dev') { enterDev(); return; }
+    showView(view);
+    if (view === 'client') {
+      setTimeout(() => {
+        renderClientDashboard?.();
+        renderClientInventory?.();
+        renderOrders?.();
+        renderCashiersTable?.();
+        updateStoreBadges?.(AuthState.currentUser?.storeName || 'Store', AuthState.currentUser?.storeId || 'grocery');
+      }, 50);
+    }
+    if (view === 'cashier') { renderCashierDashboard?.(); renderCashierInventory?.(); }
+    if (view === 'dev') { renderDevDashboard?.(); renderRetailers?.(); renderPlans?.(); }
+  }
+
+  window.addEventListener('DOMContentLoaded', () => {
+    showView('selector');
+  });
+
+  const DEV_PIN = '363738';
+  function enterDev() {
+    if (typeof showDevLogin === 'function') { showDevLogin(); return; }
+    const pin = prompt('Enter Developer PIN:');
+    if (pin === DEV_PIN) {
+      showView('dev');
+      renderDevDashboard?.();
+      renderRetailers?.();
+      renderPlans?.();
+    } else if (pin !== null) {
+      toast('Incorrect PIN', 'error');
+    }
+  }
+</script>
+
+<script src="shared.js"></script>
+<script src="admin.js"></script>
+<script src="customer.js"></script>
+<script src="auth.js"></script>
+
+<!-- Shop Companion 3.0 Extensions -->
+<script>
+/* ── NEW: Client Scan Tab Logic ── */
+let _clientScanner = null;
+
+function startClientScanner() {
+  const video = document.getElementById('clientScanVideo');
+  const status = document.getElementById('clientScanStatus');
+  if (!video) return;
+  if (status) status.textContent = '📷 Starting camera…';
+  Scanner.start(video, (code) => {
+    if (status) status.textContent = '✅ Scanned: ' + code;
+    document.getElementById('clientBarcodeField').value = code;
+    processClientBarcode();
+    toast('Barcode scanned: ' + code, 'success');
+  }).catch(e => toast('Camera error: ' + e.message, 'error'));
+}
+
+function stopClientScanner() {
+  Scanner.stop();
+  const status = document.getElementById('clientScanStatus');
+  if (status) status.textContent = '📷 Camera stopped';
+}
+
+function clientManualBarcode() {
+  const val = prompt('Enter barcode manually:');
+  if (val) {
+    document.getElementById('clientBarcodeField').value = val.trim();
+    processClientBarcode();
+  }
+}
+
+function processClientBarcode() {
+  const barcode = document.getElementById('clientBarcodeField')?.value.trim();
+  const result  = document.getElementById('clientScanResult');
+  if (!barcode || !result) return;
+
+  const storeId = AuthState.currentUser?.storeId || 'grocery';
+  const inv = MultiStore.getInventory(storeId);
+  const product = inv.find(p => p.barcode === barcode);
+
+  if (product) {
+    result.innerHTML = `
+      <div class="card" style="border-color:var(--green);background:var(--green-pale)">
+        <div style="font-size:2rem;text-align:center;margin-bottom:8px">${product.image || '📦'}</div>
+        <div style="font-weight:700;font-size:1rem;text-align:center;color:var(--text)">${product.name}</div>
+        <div style="text-align:center;color:var(--text-3);font-size:12px;margin-bottom:12px">${product.category} · ${product.type}</div>
+        <div style="display:flex;justify-content:space-between;font-size:13px;margin-bottom:4px">
+          <span>Price:</span><span style="font-family:var(--font-mono);color:var(--blue);font-weight:700">₱${product.price.toFixed(2)}</span>
+        </div>
+        <div style="display:flex;justify-content:space-between;font-size:13px;margin-bottom:14px">
+          <span>Stock:</span><span style="font-family:var(--font-mono);font-weight:700;color:${product.stock <= (product.lowStockAt||10) ? 'var(--yellow)':'var(--green)'}">${product.stock} ${product.unit || 'pcs'}</span>
+        </div>
+        <div style="display:flex;gap:8px">
+          <input class="form-input" type="number" id="scanStockAdd" placeholder="Add qty" min="1" value="1" style="width:100px" />
+          <button class="btn btn-primary btn-sm" onclick="addStockFromScan('${product.id}')">+ Add Stock</button>
+          <button class="btn btn-ghost btn-sm" onclick="openEditProductFromScan('${product.id}')">✏️ Edit</button>
+        </div>
+      </div>`;
+  } else {
+    result.innerHTML = `
+      <div class="card" style="border-color:var(--yellow);background:var(--yellow-pale)">
+        <div style="text-align:center;margin-bottom:12px">
+          <div style="font-size:1.5rem">❓</div>
+          <div style="font-weight:700;color:var(--text)">Product Not Found</div>
+          <div style="font-size:12px;color:var(--text-3);margin-top:4px">Barcode: ${barcode}</div>
+        </div>
+        <button class="btn btn-primary w-full" onclick="openAddProductWithBarcode('${barcode}')">+ Add New Product</button>
+      </div>`;
+  }
+}
+
+function addStockFromScan(productId) {
+  const qty = parseInt(document.getElementById('scanStockAdd')?.value) || 1;
+  const storeId = AuthState.currentUser?.storeId || 'grocery';
+  const inv = MultiStore.getInventory(storeId);
+  const idx = inv.findIndex(p => p.id === productId);
+  if (idx === -1) return;
+  inv[idx].stock += qty;
+  MultiStore.saveInventory(storeId, inv);
+  toast(`Added ${qty} units to ${inv[idx].name}`, 'success');
+  document.getElementById('clientBarcodeField').value = inv[idx].barcode || '';
+  processClientBarcode();
+}
+
+function openAddProductWithBarcode(barcode) {
+  openAddProductModal('client');
+  setTimeout(() => {
+    const field = document.getElementById('pBarcode');
+    if (field) field.value = barcode;
+  }, 50);
+}
+
+function openEditProductFromScan(productId) {
+  openEditProductModal('client', productId);
+}
+
+/* ── NEW: Cashier Scan Tab Logic ── */
+function startCashierScanTab() {
+  const video = document.getElementById('cashierScanTabVideo');
+  const status = document.getElementById('cashierScanTabStatus');
+  if (!video) return;
+  if (status) status.textContent = '📷 Starting camera…';
+  Scanner.start(video, (code) => {
+    if (status) status.textContent = '✅ Scanned: ' + code;
+    document.getElementById('cashierBarcodeField').value = code;
+    processCashierBarcode();
+    toast('Barcode scanned: ' + code, 'success');
+  });
+}
+
+function stopCashierScanTab() {
+  Scanner.stop();
+  const status = document.getElementById('cashierScanTabStatus');
+  if (status) status.textContent = '📷 Camera stopped';
+}
+
+function cashierManualBarcode() {
+  const val = prompt('Enter barcode manually:');
+  if (val) {
+    document.getElementById('cashierBarcodeField').value = val.trim();
+    processCashierBarcode();
+  }
+}
+
+function processCashierBarcode() {
+  const barcode = document.getElementById('cashierBarcodeField')?.value.trim();
+  const result  = document.getElementById('cashierScanResult');
+  if (!barcode || !result) return;
+
+  const storeId = AuthState.currentUser?.storeId || 'grocery';
+  const inv = MultiStore.getInventory(storeId);
+  const product = inv.find(p => p.barcode === barcode);
+
+  if (product) {
+    const stockColor = product.stock === 0 ? 'var(--red)' : product.stock <= (product.lowStockAt||10) ? 'var(--yellow)' : 'var(--green)';
+    result.innerHTML = `
+      <div class="card" style="border-color:var(--blue-pale)">
+        <div style="font-size:2rem;text-align:center;margin-bottom:8px">${product.image || '📦'}</div>
+        <div style="font-weight:700;font-size:1rem;text-align:center">${product.name}</div>
+        <div style="text-align:center;color:var(--text-3);font-size:12px;margin-bottom:10px">${product.category}</div>
+        <div style="display:flex;justify-content:space-between;margin-bottom:4px;font-size:13px">
+          <span>Price:</span><span style="font-family:var(--font-mono);color:var(--blue);font-weight:700">₱${product.price.toFixed(2)}</span>
+        </div>
+        <div style="display:flex;justify-content:space-between;margin-bottom:14px;font-size:13px">
+          <span>Stock:</span><span style="font-family:var(--font-mono);font-weight:700;color:${stockColor}">${product.stock}</span>
+        </div>
+        <button class="btn btn-primary w-full btn-sm" onclick="addToCartFromCashierScan('${product.id}')">+ Add to Cart Entry</button>
+      </div>`;
+  } else {
+    result.innerHTML = `
+      <div class="empty-state">
+        <div class="empty-icon">❓</div>
+        <p>Product not found for barcode:<br/><strong style="font-family:var(--font-mono)">${barcode}</strong></p>
+        <button class="btn btn-primary btn-sm" style="margin-top:10px" onclick="openAddProductModal('cashier')">+ Add Product</button>
+      </div>`;
+  }
+}
+
+function addToCartFromCashierScan(productId) {
+  toast('Product identified. Use Checkout tab to process customer orders.', 'info');
+}
+
+/* ── OVERRIDE cashierSwitchTab to handle new scan tab ── */
+const _origCashierSwitch = (typeof cashierSwitchTab !== 'undefined') ? cashierSwitchTab : null;
+function cashierSwitchTab(tab, el) {
+  try {
+    if (typeof switchPanelTab === 'function') switchPanelTab('cashier', tab, el);
+  } catch(e) { console.warn(e); }
+  if (tab === 'cashier-dashboard') renderCashierDashboard?.();
+  if (tab === 'cashier-inventory') renderCashierInventory?.();
+  if (tab !== 'cashier-checkout') stopCheckoutScanner?.();
+  if (tab !== 'cashier-scan') stopCashierScanTab?.();
+}
+
+/* ── OVERRIDE clientSwitchTab to handle new scan tab ── */
+function clientSwitchTab(tab, el) {
+  try {
+    if (typeof switchPanelTab === 'function') switchPanelTab('client', tab, el);
+  } catch(e) { console.warn(e); }
+  if (tab === 'client-dashboard') renderClientDashboard?.();
+  if (tab === 'client-inventory') renderClientInventory?.();
+  if (tab === 'client-orders')    renderOrders?.();
+  if (tab === 'client-cashiers')  renderCashiersTable?.();
+  if (tab !== 'client-scan') stopClientScanner?.();
+}
+
+/* ── devSwitchTab ── */
+function devSwitchTab(tab, el) {
+  try {
+    if (typeof switchPanelTab === 'function') switchPanelTab('dev', tab, el);
+  } catch(e) {
+    document.querySelectorAll('#view-dev .tab-panel').forEach(p => p.classList.add('hidden'));
+    document.getElementById('tab-' + tab)?.classList.remove('hidden');
+    document.querySelectorAll('#view-dev .nav-item').forEach(n => n.classList.remove('active'));
+    if (el) el.classList.add('active');
+  }
+  if (tab === 'dev-retailers')     renderRetailers?.();
+  if (tab === 'dev-subscriptions') renderPlans?.();
+  if (tab === 'dev-customers')     renderDevCustomers?.();
+  if (tab === 'dev-stores')        { renderDevStoreMonitor?.(); renderDevInventoryTable?.(); updateDevStoreStats?.(); }
+}
+
+/* ── Cashier Management ── */
+function openAddCashierModal() {
+  openModal('modal-cashier');
+  document.getElementById('cashierFormName').value = '';
+  const storeId = AuthState.currentUser?.storeId;
+  const hint = document.getElementById('cashierLoginFormatHint');
+  if (hint) hint.textContent = storeId ? `${storeId}@cashier.pro` : 'storename@cashier.pro';
+}
+
+function saveCashierAccount() {
+  const name = document.getElementById('cashierFormName')?.value.trim();
+  if (!name) { toast('Please enter a cashier name', 'warning'); return; }
+  const user = AuthState.currentUser;
+  if (!user?.email) { toast('Not logged in', 'error'); return; }
+  const cashiers = MultiStore.getCashiers(user.email);
+  cashiers.push({ id: 'CSH' + Date.now().toString().slice(-5), name, added: new Date().toISOString().slice(0,10), status: 'active' });
+  MultiStore.saveCashiers(user.email, cashiers);
+  closeModal('modal-cashier');
+  renderCashiersTable();
+  toast(`Cashier "${name}" added`, 'success');
+}
+
+function deleteCashierAccount(id) {
+  if (!confirm('Remove this cashier?')) return;
+  const user = AuthState.currentUser;
+  if (!user?.email) return;
+  const cashiers = MultiStore.getCashiers(user.email).filter(c => c.id !== id);
+  MultiStore.saveCashiers(user.email, cashiers);
+  renderCashiersTable();
+  toast('Cashier removed', 'info');
+}
+
+function renderCashiersTable() {
+  const tbody = document.getElementById('cashiersBody');
+  if (!tbody) return;
+  const user = AuthState.currentUser;
+  if (!user?.email) return;
+  const storeId = user.storeId;
+  const loginEmail = storeId ? `${storeId}@cashier.pro` : '—';
+  const hintEl = document.getElementById('cashierLoginEmail');
+  if (hintEl) hintEl.textContent = loginEmail;
+  const cashiers = MultiStore.getCashiers(user.email);
+  if (!cashiers.length) {
+    tbody.innerHTML = `<tr><td colspan="5" style="text-align:center;color:var(--text-muted);padding:24px">No cashier accounts yet. Add one above.</td></tr>`;
+    return;
+  }
+  tbody.innerHTML = cashiers.map(c => `
+    <tr>
+      <td style="font-weight:600">${c.name}</td>
+      <td style="font-family:var(--font-mono);color:var(--blue)">${loginEmail}</td>
+      <td style="color:var(--text-3)">${c.added}</td>
+      <td><span class="badge ${c.status==='active'?'badge-green':'badge-gray'}">${c.status}</span></td>
+      <td><button class="btn btn-danger btn-sm" onclick="deleteCashierAccount('${c.id}')">Remove</button></td>
+    </tr>
+  `).join('');
+}
+
+/* ── Dev Store Stats ── */
+function updateDevStoreStats() {
+  let totalProducts = 0, totalLow = 0, totalOrders = 0;
+  ['grocery','toy','school'].forEach(sid => {
+    const inv  = MultiStore.getInventory(sid);
+    const ords = MultiStore.getOrders(sid);
+    totalProducts += inv.length;
+    totalLow      += inv.filter(p => p.stock > 0 && p.stock <= (p.lowStockAt||10)).length;
+    totalOrders   += ords.length;
+  });
+  const tp = document.getElementById('devTotalProducts');
+  const tl = document.getElementById('devTotalLowStock');
+  const to = document.getElementById('devTotalOrders');
+  if (tp) tp.textContent = totalProducts;
+  if (tl) tl.textContent = totalLow;
+  if (to) to.textContent = totalOrders;
+}
+
+function renderDevInventoryTable() {
+  const sel = document.getElementById('devStoreFilter');
+  const storeId = sel ? sel.value : 'grocery';
+  const inv = MultiStore.getInventory(storeId);
+  const tbody = document.getElementById('devInvTableBody');
+  if (!tbody) return;
+  if (!inv.length) {
+    tbody.innerHTML = `<tr><td colspan="7" style="text-align:center;color:var(--text-muted);padding:24px">No products found</td></tr>`;
+    return;
+  }
+  tbody.innerHTML = inv.map(p => {
+    const low = p.stock > 0 && p.stock <= (p.lowStockAt||10);
+    const out = p.stock === 0;
+    const statusClass = out ? 'badge-red' : low ? 'badge-yellow' : 'badge-green';
+    const statusText  = out ? 'Out of Stock' : low ? 'Low Stock' : 'In Stock';
+    const expiryText  = p.expiry ? formatDateShort(p.expiry) : '—';
+    return `<tr>
+      <td style="color:var(--text-muted);font-family:var(--font-mono)">${p.id}</td>
+      <td style="font-weight:500">${p.image || ''} ${p.name}</td>
+      <td>${p.category}</td>
+      <td style="font-family:var(--font-mono);color:var(--blue)">₱${p.price.toFixed(2)}</td>
+      <td style="font-family:var(--font-mono);font-weight:600">${p.stock}</td>
+      <td><span class="badge ${statusClass}">${statusText}</span></td>
+      <td style="color:var(--text-muted)">${expiryText}</td>
+    </tr>`;
+  }).join('');
+}
+
+/* ── Dev Customers (Extended with store activity) ── */
+let _devCustData = [];
+function renderDevCustomers() {
+  const tbody = document.getElementById('devCustomersBody');
+  if (!tbody) return;
+  const globalCustomers = JSON.parse(localStorage.getItem('sc_global_customers') || '[]');
+  _devCustData = globalCustomers.length ? globalCustomers : [
+    { id: 'GC001', name: 'Mark Santos', email: 'mark@gmail.com', joined: '2025-01-10', lastLogin: '2025-05-14', totalOrders: 5, points: 50 },
+    { id: 'GC002', name: 'Ana Reyes',   email: 'ana@gmail.com',  joined: '2025-02-03', lastLogin: '2025-05-10', totalOrders: 3, points: 30 },
+  ];
+  _renderDevCustTable(_devCustData);
+}
+
+function _renderDevCustTable(data) {
+  const tbody = document.getElementById('devCustomersBody');
+  if (!tbody) return;
+  if (!data.length) {
+    tbody.innerHTML = `<tr><td colspan="7" style="text-align:center;padding:32px;color:var(--text-muted)">No customers registered yet.</td></tr>`;
+    return;
+  }
+  tbody.innerHTML = data.map(c => `
+    <tr>
+      <td style="font-family:var(--font-mono);color:var(--blue)">${c.email || '—'}</td>
+      <td style="font-weight:600">${c.name || '—'}</td>
+      <td style="color:var(--text-3)">${c.joined || '—'}</td>
+      <td style="color:var(--text-3)">${c.lastLogin || '—'}</td>
+      <td style="font-family:var(--font-mono);color:var(--green);font-weight:700">${c.totalOrders ?? 0}</td>
+      <td style="font-family:var(--font-mono);color:var(--yellow);font-weight:700">${c.points ?? 0}</td>
+      <td><span class="badge badge-green">Registered</span></td>
+    </tr>
+  `).join('');
+}
+
+function filterDevCustomers() {
+  const q = (document.getElementById('devCustSearch')?.value || '').toLowerCase();
+  const filtered = q ? _devCustData.filter(c => (c.email||'').toLowerCase().includes(q) || (c.name||'').toLowerCase().includes(q)) : _devCustData;
+  _renderDevCustTable(filtered);
+}
+
+/* ── Dev Stat Card Helper ── */
+function devStatCard(icon, label, value, color) {
+  return `<div class="stat-card">
+    <div class="stat-icon ${color}">${icon}</div>
+    <div><div class="stat-value">${value}</div><div class="stat-label">${label}</div></div>
+  </div>`;
+}
+
+/* ── Update store badges in client sidebar ── */
+function updateStoreBadges(storeName, storeId) {
+  document.querySelectorAll('.current-store-name').forEach(el => {
+    el.textContent = storeName || 'Store';
+  });
+  const strip = document.getElementById('clientStoreStrip');
+  if (strip) {
+    const defs = { grocery: {icon:'🛒',color:'var(--green)'}, toy: {icon:'🧸',color:'var(--yellow)'}, school: {icon:'📚',color:'var(--blue)'} };
+    const d = defs[storeId] || {icon:'🏪',color:'var(--blue)'};
+    strip.innerHTML = `<span class="store-badge" style="background:${d.color}20;border-color:${d.color}40;color:${d.color}">${d.icon} ${storeName}</span>`;
+  }
+  const custLabelEl = document.getElementById('custStoreLabel');
+  if (custLabelEl) custLabelEl.textContent = storeId ? `Shopping at ${storeName}` : 'Customer View';
+  const custStoreBtn = document.getElementById('custStoreBtn');
+  if (custStoreBtn && storeId) custStoreBtn.style.display = '';
+}
+
+/* ── Switch store for customer ── */
+function switchStore() {
+  if (AuthState.currentStore) {
+    try { MultiStore.saveCart(AuthState.currentStore.id, cart); } catch(e) {}
+  }
+  const user = AuthState.currentUser || { name: 'Guest' };
+  showStoreSelector(user);
+}
+
+/* ── Mobile bottom nav sync ── */
+function syncBottomNav(activeBtn) {
+  const tab = activeBtn?.dataset.tab;
+  document.querySelectorAll('.cust-bnav-btn').forEach(btn => btn.classList.toggle('active', btn.dataset.tab === tab));
+  document.querySelectorAll('.cust-tab').forEach(t => t.classList.toggle('active', t.dataset.tab === tab));
+}
+
+// Mirror cart badge to bottom nav
+(function watchCartBadge() {
+  const src  = document.getElementById('cartBadge');
+  const dest = document.getElementById('bnavCartBadge');
+  if (!src || !dest) return;
+  new MutationObserver(() => { dest.textContent = src.textContent; }).observe(src, { childList: true, characterData: true, subtree: true });
+  dest.textContent = src.textContent;
+})();
+
+// Sync desktop tab clicks to bottom nav
+document.addEventListener('DOMContentLoaded', () => {
+  document.querySelectorAll('.cust-tab').forEach(tab => {
+    tab.addEventListener('click', () => syncBottomNav(tab));
+  });
+});
+</script>
+</body>
+</html>
