@@ -73,7 +73,8 @@ function seedData() {
     { id: 'P012', name: 'Banana (per kg)',       barcode: '8901234560127', category: 'Produce',   type: 'Fruits',        price: 60,  stock: 55, unit: 'kg',     image: '🍌', expiry: '2025-02-25', lowStockAt: 10 },
     { id: 'P013', name: 'Apple Fuji (per kg)',   barcode: '8901234560134', category: 'Produce',   type: 'Fruits',        price: 110, stock: 40, unit: 'kg',     image: '🍎', expiry: '2025-03-20', lowStockAt: 8  },
     { id: 'P014', name: 'Instant Noodles',       barcode: '8901234560141', category: 'Pantry',    type: 'Noodles',       price: 15,  stock: 5,  unit: 'pack',   image: '🍜', expiry: '2026-01-01', lowStockAt: 20 },
-    { id: 'P015', name: 'Bottled Water (1.5L)',  barcode: '8901234560158', category: 'Beverages', type: 'Water',         price: 25,  stock: 90, unit: 'bottle', image: '💧', expiry: '2027-01-01', lowStockAt: 20 },
+    { id: 'P015', name: 'Bottled Water (1.5L)',  barcode: '4800049720114', category: 'Beverages', type: 'Water',         price: 25,  stock: 90, unit: 'bottle', image: '💧', expiry: '2027-01-01', lowStockAt: 20 },
+    { id: 'P016', name: 'Face Powder (50 g)',    barcode: '4800047862533', category: 'Produce', type: 'Utilities',         price: 25,  stock: 50, unit: 'bottle', image: 🧴'', expiry: '2027-01-05', lowStockAt: 5 },
   ]);
 
   // ── Customers ──
