@@ -12,11 +12,6 @@
   <link rel="stylesheet" href="customer.css" />
   <link rel="stylesheet" href="auth.css" />
 
-  <!-- QR Code Generator -->
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
-  <!-- ZXing Barcode/QR Scanner -->
-  <script src="https://unpkg.com/@zxing/library@0.19.1/umd/index.min.js"></script>
-
   <style>
     .hidden { display: none !important; }
     body, html { height: 100%; }
@@ -1740,6 +1735,16 @@ document.addEventListener('DOMContentLoaded', () => {
   }, 300);
 });
 </script>
+
+<!-- ═══════════════════════════════════════════
+     THIRD-PARTY LIBRARIES — loaded last so they
+     never block auth.js / shared.js / admin.js
+     from registering their global functions.
+═══════════════════════════════════════════ -->
+<!-- QR Code Generator -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js" defer></script>
+<!-- ZXing Barcode/QR Scanner -->
+<script src="https://unpkg.com/@zxing/library@0.19.1/umd/index.min.js" defer></script>
 
 </body>
 </html>
