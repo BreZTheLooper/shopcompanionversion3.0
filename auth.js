@@ -243,10 +243,10 @@ function seedMultiStoreData() {
 // Show login screen for a specific role
 function showAuthScreen(role) {
   // Hide all views first
-  document.getElementById('selector')?.classList.add('hidden');
-  document.getElementById('authentication')?.classList.remove('hidden');
+  document.getElementById('view-selector')?.classList.add('hidden');
+  document.getElementById('auth-screen')?.classList.remove('hidden');
 
-  const screen = document.getElementById('authentication');
+  const screen = document.getElementById('auth-screen');
   const configs = {
     client: {
       title: 'Client Login',
@@ -402,8 +402,8 @@ function togglePasswordVisibility() {
 }
 
 function backToSelector() {
-  document.getElementById('authentication')?.classList.add('hidden');
-  document.getElementById('selector')?.classList.remove('hidden');
+  document.getElementById('auth-screen')?.classList.add('hidden');
+  document.getElementById('view-selector')?.classList.remove('hidden');
 }
 
 function attemptLogin(role) {
@@ -459,7 +459,7 @@ function loginFail() {
 }
 
 function loginSuccess(role, storeId, storeName) {
-  document.getElementById('authentication')?.classList.add('hidden');
+  document.getElementById('auth-screen')?.classList.add('hidden');
 
   if (role === 'client') {
     // Load store-specific inventory into the shared Inventory object
@@ -520,7 +520,7 @@ function updateStoreBadges(storeName, storeId) {
    STORE SELECTOR (for customers)
    ============================================================ */
 function showStoreSelector(customer) {
-  document.getElementById('authentication')?.classList.add('hidden');
+  document.getElementById('auth-screen')?.classList.add('hidden');
   document.getElementById('store-selector-screen')?.classList.remove('hidden');
 
   const greeting = document.getElementById('storeSelectorGreeting');
@@ -657,7 +657,7 @@ function switchStore() {
    CUSTOMER REGISTRATION
    ============================================================ */
 function showRegisterForm() {
-  const screen = document.getElementById('authentication');
+  const screen = document.getElementById('auth-screen');
   if (!screen) return;
 
   screen.innerHTML = `
@@ -751,8 +751,8 @@ function logout() {
   try { sessionStorage.removeItem('sc_cart'); } catch(e) {}
 
   // Hide all panels
-  ['developer','client','cashier','customer',
-   'authentication','store-selector-screen'].forEach(id => {
+  ['view-dev','view-client','view-cashier','view-customer',
+   'auth-screen','store-selector-screen'].forEach(id => {
     document.getElementById(id)?.classList.add('hidden');
   });
 
@@ -764,10 +764,10 @@ function logout() {
    DEVELOPER ENHANCED LOGIN
    ============================================================ */
 function showDevLogin() {
-  document.getElementById('selector')?.classList.add('hidden');
-  document.getElementById('authentication')?.classList.remove('hidden');
+  document.getElementById('view-selector')?.classList.add('hidden');
+  document.getElementById('auth-screen')?.classList.remove('hidden');
 
-  const screen = document.getElementById('authentication');
+  const screen = document.getElementById('auth-screen');
   screen.innerHTML = `
     <div class="auth-container">
       <div class="auth-card">
@@ -807,9 +807,9 @@ function showDevLogin() {
 function attemptDevLogin() {
   const pin = document.getElementById('devPinInput')?.value;
   if (pin === AUTH_CONFIG.developer.pin) {
-    document.getElementById('authentication')?.classList.add('hidden');
+    document.getElementById('auth-screen')?.classList.add('hidden');
     AuthState.set('developer', { role: 'developer' }, null);
-    showView('developer');
+    showView('dev');
     renderDevDashboard();
     renderRetailers();
     renderPlans();

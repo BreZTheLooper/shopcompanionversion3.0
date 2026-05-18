@@ -30,7 +30,7 @@
 <!-- ═══════════════════════════════════════════
      AUTH SCREEN
 ═══════════════════════════════════════════ -->
-<div id="authentication" class="hidden"></div>
+<div id="auth-screen" class="hidden"></div>
 
 <!-- ═══════════════════════════════════════════
      STORE SELECTOR (Customer)
@@ -101,7 +101,7 @@
 <!-- ═══════════════════════════════════════════
      ACCESS SELECTOR
 ═══════════════════════════════════════════ -->
-<div id="selector" class="access-selector">
+<div id="view-selector" class="access-selector">
   <img src="logo.png" alt="Shop Companion" class="selector-logo"
        onerror="this.style.display='none'" />
   <h1>SHOP COMPANION</h1>
@@ -136,7 +136,7 @@
 <!-- ═══════════════════════════════════════════
      DEVELOPER PANEL
 ═══════════════════════════════════════════ -->
-<div id="developer" class="hidden">
+<div id="view-dev" class="hidden">
   <div class="admin-layout">
     <aside class="sidebar" id="devSidebar">
       <div class="sidebar-header">
@@ -355,7 +355,7 @@
 <!-- ═══════════════════════════════════════════
      CLIENT PANEL (Store Owner)
 ═══════════════════════════════════════════ -->
-<div id="client" class="hidden">
+<div id="view-client" class="hidden">
   <div class="admin-layout">
     <aside class="sidebar" id="clientSidebar">
       <div class="sidebar-header">
@@ -637,7 +637,7 @@
 <!-- ═══════════════════════════════════════════
      CASHIER PANEL
 ═══════════════════════════════════════════ -->
-<div id="cashier" class="hidden">
+<div id="view-cashier" class="hidden">
   <div class="admin-layout">
     <aside class="sidebar" id="cashierSidebar">
       <div class="sidebar-header">
@@ -841,7 +841,7 @@
 <!-- ═══════════════════════════════════════════
      CUSTOMER PANEL
 ═══════════════════════════════════════════ -->
-<div id="customer" class="hidden">
+<div id="view-customer" class="hidden">
 
   <!-- Terms Gate -->
   <div id="termsGate" class="terms-screen">
@@ -1098,25 +1098,22 @@
 <!-- Core view switcher -->
 <script>
   function showView(name) {
-    const ALL = ['selector','developer','client','cashier','customer'];
+    const ALL = ['selector','dev','client','cashier','customer'];
     ALL.forEach(v => {
-      const el = document.getElementById(v);
+      const el = document.getElementById('view-' + v);
       if (el) el.classList.toggle('hidden', v !== name);
     });
-    // Update URL hash for SEO and shareability
-    if (name === 'selector') { history.replaceState(null, '', location.pathname); }
-    else { history.replaceState(null, '', '#' + name); }
   }
 
   function navigateTo(view) {
     if (view === 'selector') {
-      ['authentication','store-selector-screen'].forEach(id => {
+      ['auth-screen','store-selector-screen'].forEach(id => {
         document.getElementById(id)?.classList.add('hidden');
       });
       showView('selector');
       return;
     }
-    if (view === 'developer') { enterDev(); return; }
+    if (view === 'dev') { enterDev(); return; }
     showView(view);
     if (view === 'client') {
       setTimeout(() => {
@@ -1128,7 +1125,7 @@
       }, 50);
     }
     if (view === 'cashier') { renderCashierDashboard?.(); renderCashierInventory?.(); }
-    if (view === 'developer') { renderDevDashboard?.(); renderRetailers?.(); renderPlans?.(); }
+    if (view === 'dev') { renderDevDashboard?.(); renderRetailers?.(); renderPlans?.(); }
   }
 
   window.addEventListener('DOMContentLoaded', () => {
@@ -1140,7 +1137,7 @@
     if (typeof showDevLogin === 'function') { showDevLogin(); return; }
     const pin = prompt('Enter Developer PIN:');
     if (pin === DEV_PIN) {
-      showView('developer');
+      showView('dev');
       renderDevDashboard?.();
       renderRetailers?.();
       renderPlans?.();
@@ -1415,9 +1412,9 @@ function clientSwitchTab(tab, el) {
 
 function devSwitchTab(tab, el) {
   try { switchPanelTab('dev', tab, el); } catch(e) {
-    document.querySelectorAll('#developer .tab-panel').forEach(p => p.classList.add('hidden'));
+    document.querySelectorAll('#view-dev .tab-panel').forEach(p => p.classList.add('hidden'));
     document.getElementById('tab-' + tab)?.classList.remove('hidden');
-    document.querySelectorAll('#developer .nav-item').forEach(n => n.classList.remove('active'));
+    document.querySelectorAll('#view-dev .nav-item').forEach(n => n.classList.remove('active'));
     if (el) el.classList.add('active');
   }
   if (tab === 'dev-retailers')     renderRetailers?.();
