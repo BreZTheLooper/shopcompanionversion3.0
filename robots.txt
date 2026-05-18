@@ -1,0 +1,3 @@
+User-agent: *
+Allow: /
+Sitemap: https://astechsoln.shop/sitemap.xml
