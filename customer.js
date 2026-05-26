@@ -153,11 +153,48 @@ function registerCustomer() {
     }
   }
 
-  const newCust = Customers.add({ name, email, phone });
-  setCurrentCustomer(newCust);
-  ['regName','regEmail','regPhone','regRegCode'].forEach(id => {
-    const el = document.getElementById(id); if (el) el.value = '';
-  });
+  const _clearFields = () => {
+    ['regName','regEmail','regPhone','regRegCode'].forEach(id => {
+      const el = document.getElementById(id); if (el) el.value = '';
+    });
+  };
+
+  // Build new customer object
+  const base = { name, email, phone };
+
+  if (email && typeof DB !== 'undefined') {
+    // Register in Supabase so the customer can log in globally
+    const supabaseCustomer = {
+      id:          'GC' + Date.now().toString().slice(-6),
+      name, email, phone,
+      password:    '', // no password set via this legacy form
+      joined:      new Date().toISOString().slice(0,10),
+      totalOrders: 0,
+      points:      0
+    };
+    DB.registerCustomer(supabaseCustomer).then(created => {
+      // Sync back to localStorage cache
+      try {
+        const sc = JSON.parse(localStorage.getItem('sc_global_customers') || '[]');
+        if (!sc.find(c => c.email === email)) {
+          sc.push(created || supabaseCustomer);
+          localStorage.setItem('sc_global_customers', JSON.stringify(sc));
+        }
+      } catch(e) {}
+      // Also add to local Customers store (for in-panel display)
+      const newCust = Customers.add({ ...base, id: (created || supabaseCustomer).id });
+      setCurrentCustomer(newCust);
+      _clearFields();
+    }).catch(() => {
+      const newCust = Customers.add(base);
+      setCurrentCustomer(newCust);
+      _clearFields();
+    });
+  } else {
+    const newCust = Customers.add(base);
+    setCurrentCustomer(newCust);
+    _clearFields();
+  }
 }
 
 /* ============================================================
@@ -631,12 +668,28 @@ function renderQRCode() {
     ts:       Date.now()
   };
 
+  // Generate / store a short text code for cashier manual entry
+  const textCode = generateCartTextCode(payload);
+
   // Render in a white wrapper for maximum scanner readability
   qrEl.innerHTML = '';
   const wrap = document.createElement('div');
   wrap.className = 'qr-wrapper';
   generatePlainQR(wrap, payload, 240);
   qrEl.appendChild(wrap);
+
+  // Text-code fallback block (shown below the QR)
+  const codeEl = document.getElementById('qrTextCode');
+  if (codeEl) {
+    codeEl.innerHTML = `
+      <div style="margin-top:18px;padding:14px 18px;background:var(--surface-2);border:1.5px dashed var(--border-strong);border-radius:var(--radius-md);text-align:center">
+        <div style="font-family:var(--font-body);font-size:11px;color:var(--text-3);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:6px">
+          Can't scan? Give this code to the cashier
+        </div>
+        <div id="qrTextCodeValue" style="font-family:var(--font-mono);font-size:1.6rem;font-weight:800;letter-spacing:0.18em;color:var(--blue);user-select:all">${textCode}</div>
+        <button class="btn btn-ghost btn-sm" style="margin-top:10px" onclick="copyTextCode('${textCode}')">📋 Copy Code</button>
+      </div>`;
+  }
 
   // Cart summary preview
   if (sumEl) {
@@ -658,6 +711,28 @@ function renderQRCode() {
   }
 }
 
+/* ── Text-code helpers ── */
+const TEXT_CODE_STORE_KEY = 'sc_text_codes';
+
+function generateCartTextCode(payload) {
+  // Produce a 6-character alphanumeric code, store payload against it
+  const code = Math.random().toString(36).slice(2, 8).toUpperCase();
+  const store = JSON.parse(localStorage.getItem(TEXT_CODE_STORE_KEY) || '{}');
+
+  // Purge codes older than 2 hours to keep storage lean
+  const cutoff = Date.now() - 2 * 60 * 60 * 1000;
+  Object.keys(store).forEach(k => { if ((store[k].ts || 0) < cutoff) delete store[k]; });
+
+  store[code] = { ...payload, ts: Date.now() };
+  localStorage.setItem(TEXT_CODE_STORE_KEY, JSON.stringify(store));
+  return code;
+}
+
+function copyTextCode(code) {
+  try { navigator.clipboard.writeText(code); } catch(e) {}
+  toast(`Code "${code}" copied!`, 'success');
+}
+
 function regenerateQR() {
   const qrEl = document.getElementById('qrOutput');
   if (qrEl) qrEl.innerHTML = '';
@@ -673,8 +748,24 @@ function renderRewards() {
   const vEl   = document.getElementById('rewardsVouchers');
   if (!ptsEl || !vEl) return;
 
-  const pts = currentCustomer?.id ? (Customers.findById(currentCustomer.id)?.points || 0) : 0;
-  ptsEl.textContent = pts;
+  // Read local points first (instant), then refresh from Supabase
+  const localPts = currentCustomer?.id ? (Customers.findById(currentCustomer.id)?.points || 0) : 0;
+  ptsEl.textContent = localPts;
+
+  if (currentCustomer?.id && typeof DB !== 'undefined') {
+    /* FIX: use getCustomerById — avoids fetching every customer
+       just to refresh one person's points balance               */
+    DB.getCustomerById(currentCustomer.id).then(fresh => {
+      if (fresh) {
+        ptsEl.textContent = fresh.points || 0;
+        // Sync local cache
+        currentCustomer.points = fresh.points || 0;
+        try {
+          sessionStorage.setItem('sc_current_customer', JSON.stringify(currentCustomer));
+        } catch(e) {}
+      }
+    }).catch(() => {}); // silently keep local value on error
+  }
 
   const vouchers = Vouchers.getAll();
   if (!vouchers.length) {

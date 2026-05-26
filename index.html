@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <meta name="google-site-verification" content="JA2DwHGwYzz6lCmoVCEZawxOj5lE1v4-ouaf0LR6UV8" />
-  <meta name="description" content="Shop Companion 3.0 — a multi-store retail intelligence platform for managing inventory, cashiers, and customer checkout across JDC Grocery, Toy Kingdom, and School Hub." />
+  <meta name="description" content="Shop Companion 3.0 — a multi-store retail intelligence platform for managing inventory, cashiers, and customer checkout across JDC Grocery, Toy Kingdom, and Hiraya Likhain." />
   <link rel="canonical" href="https://astechsoln.shop/" />
   <title>Shop Companion 3.0 — Retail Intelligence Platform</title>
   <link rel="stylesheet" href="styles.css" />
@@ -20,6 +20,16 @@
   <style>
     .hidden { display: none !important; }
     body, html { height: 100%; }
+    .store-select-icon-img {
+      width: 90px;
+      height: 90px;
+      object-fit: contain;
+      border-radius: 12px;
+      margin-bottom: 10px;
+      display: block;
+      margin-left: auto;
+      margin-right: auto;
+    }
   </style>
 </head>
 <body class="dark-theme">
@@ -48,7 +58,7 @@
       <div class="store-select-card"
            style="--card-color:rgba(16,169,107,0.15);--card-border:rgba(16,169,107,0.5);--card-glow:rgba(16,169,107,0.12)"
            onclick="selectStoreAndEnter('grocery')">
-        <span class="store-select-icon">🛒</span>
+        <img src="assets/JDCGrocery_Logo.png" alt="JDC Grocery" class="store-select-icon-img" onerror="this.outerHTML='<span class=\'store-select-icon\'>🛒</span>'" />
         <div class="store-select-name">JDC Grocery</div>
         <div class="store-select-desc">Fresh produce, beverages &amp; household essentials</div>
         <div class="store-select-cats">
@@ -61,8 +71,8 @@
       <div class="store-select-card"
            style="--card-color:rgba(212,160,23,0.15);--card-border:rgba(212,160,23,0.5);--card-glow:rgba(212,160,23,0.12)"
            onclick="selectStoreAndEnter('toy')">
-        <span class="store-select-icon">🧸</span>
-        <div class="store-select-name">Toy Kingdom</div>
+        <img src="assets/Toylandia_Logo.png" alt="Toylandia" class="store-select-icon-img" onerror="this.outerHTML='<span class=\'store-select-icon\'>🧸</span>'" />
+        <div class="store-select-name">Toylandia</div>
         <div class="store-select-desc">Action figures, educational toys &amp; board games</div>
         <div class="store-select-cats">
           <span class="store-select-cat">Action Figures</span>
@@ -74,8 +84,8 @@
       <div class="store-select-card"
            style="--card-color:rgba(26,95,212,0.15);--card-border:rgba(26,95,212,0.5);--card-glow:rgba(26,95,212,0.12)"
            onclick="selectStoreAndEnter('school')">
-        <span class="store-select-icon">📚</span>
-        <div class="store-select-name">School Hub</div>
+        <img src="assets/HirayaLikhain_Logo.png" alt="Hiraya Likhain" class="store-select-icon-img" onerror="this.outerHTML='<span class=\'store-select-icon\'>📚</span>'" />
+        <div class="store-select-name">Hiraya Likhain</div>
         <div class="store-select-desc">Notebooks, writing tools &amp; art materials</div>
         <div class="store-select-cats">
           <span class="store-select-cat">Notebooks</span>
@@ -252,7 +262,7 @@
             <option value="">All Stores</option>
             <option value="grocery">🛒 JDC Grocery</option>
             <option value="toy">🧸 Toy Kingdom</option>
-            <option value="school">📚 School Hub</option>
+            <option value="school">📚 Hiraya Likhain</option>
           </select>
         </div>
         <div class="table-wrapper">
@@ -302,8 +312,8 @@
             <h3>Inventory Browser</h3>
             <select class="form-select" id="devStoreFilter" onchange="renderDevInventoryTable()" style="max-width:200px">
               <option value="grocery">🛒 JDC Grocery</option>
-              <option value="toy">🧸 Toy Kingdom</option>
-              <option value="school">📚 School Hub</option>
+              <option value="toy">🧸 Toylandia</option>
+              <option value="school">📚 Hiraya Likhain</option>
             </select>
           </div>
           <div class="divider"></div>
@@ -381,6 +391,9 @@
         </a>
         <a class="nav-item" data-tab="client-cashiers" onclick="clientSwitchTab('client-cashiers',this)">
           <span class="nav-icon">🧾</span><span class="nav-label">Cashiers</span>
+        </a>
+        <a class="nav-item" data-tab="client-reports" onclick="clientSwitchTab('client-reports',this)">
+          <span class="nav-icon">📈</span><span class="nav-label">Reports</span>
         </a>
       </nav>
       <a class="nav-switch-btn" onclick="navigateTo('selector')">
@@ -516,7 +529,7 @@
         <div class="card cashier-login-hint" style="margin-bottom:18px">
           <div style="font-weight:600;color:var(--text);margin-bottom:4px">📋 Cashier Login Format</div>
           <div style="font-family:var(--font-mono);font-size:12px;color:var(--text-3)" id="cashierLoginHint">
-            Each cashier logs in with their own unique address: <strong id="cashierLoginEmail" style="color:var(--blue)">username@storeid.cashier.pro</strong>
+            Each cashier logs in with their own unique address: <strong id="cashierLoginEmail" style="color:var(--blue)">username@storeid.cashier</strong>
           </div>
           <div style="font-size:11px;color:var(--text-3);margin-top:4px">Passwords are set per cashier when you add them above.</div>
         </div>
@@ -527,10 +540,231 @@
           </table>
         </div>
       </section>
+
+      <!-- Client Reports -->
+      <section class="tab-panel hidden" id="tab-client-reports">
+        <div class="page-header">
+          <div>
+            <h1>Reports</h1>
+            <p class="page-subtitle" id="reportsSubtitle">Sales &amp; performance analytics</p>
+          </div>
+          <div class="header-actions">
+            <span class="badge" id="reportsPlanBadge" style="font-size:12px;padding:6px 14px"></span>
+          </div>
+        </div>
+
+        <!-- ══════════════════════════════════════════
+             BASIC PLAN REPORTS
+             Available to: JDC Grocery (Basic Plan)
+             ══════════════════════════════════════════ -->
+        <div id="basicReports">
+
+          <!-- KPI Stats Row -->
+          <div class="stats-grid" id="basicReportStats"></div>
+
+          <!-- ── Sales Reports ── -->
+          <div style="margin-top:20px;margin-bottom:8px">
+            <span style="font-family:var(--font-mono);font-size:10px;font-weight:700;color:var(--text-3);text-transform:uppercase;letter-spacing:0.1em">📊 Sales</span>
+          </div>
+          <div class="dashboard-grid">
+            <div class="card">
+              <h3>📅 Daily &amp; Monthly Sales Summary</h3>
+              <p style="font-size:12px;color:var(--text-3);margin-top:2px">Revenue breakdown for the last 7 days</p>
+              <div class="divider"></div>
+              <div id="basicDailySales"></div>
+            </div>
+            <div class="card">
+              <h3>🏷️ Top-Selling Products</h3>
+              <p style="font-size:12px;color:var(--text-3);margin-top:2px">Best performers ranked by revenue &amp; quantity</p>
+              <div class="divider"></div>
+              <div id="basicTopProducts"></div>
+            </div>
+          </div>
+          <div class="card" style="margin-top:16px">
+            <h3>🧑‍💼 Cashier Performance</h3>
+            <p style="font-size:12px;color:var(--text-3);margin-top:2px">Sales processed per cashier account</p>
+            <div class="divider"></div>
+            <div id="basicCashierPerformance"></div>
+          </div>
+
+          <!-- ── Inventory Reports ── -->
+          <div style="margin-top:20px;margin-bottom:8px">
+            <span style="font-family:var(--font-mono);font-size:10px;font-weight:700;color:var(--text-3);text-transform:uppercase;letter-spacing:0.1em">📦 Inventory</span>
+          </div>
+          <div class="dashboard-grid">
+            <div class="card">
+              <h3>⚠️ Low Stock Alerts</h3>
+              <p style="font-size:12px;color:var(--text-3);margin-top:2px">Products nearing or below reorder threshold</p>
+              <div class="divider"></div>
+              <div id="basicLowStockAlert"></div>
+            </div>
+            <div class="card">
+              <h3>🗓️ Expiry Monitoring</h3>
+              <p style="font-size:12px;color:var(--text-3);margin-top:2px">Items expiring within the next 30 days</p>
+              <div class="divider"></div>
+              <div id="basicExpiryMonitor"></div>
+            </div>
+          </div>
+          <div class="card" style="margin-top:16px">
+            <h3>📦 Stock Level Overview &amp; Movement Log</h3>
+            <p style="font-size:12px;color:var(--text-3);margin-top:2px">Current stock status across all products</p>
+            <div class="divider"></div>
+            <div id="basicStockReport"></div>
+          </div>
+
+          <!-- ── Checkout Reports ── -->
+          <div style="margin-top:20px;margin-bottom:8px">
+            <span style="font-family:var(--font-mono);font-size:10px;font-weight:700;color:var(--text-3);text-transform:uppercase;letter-spacing:0.1em">🛒 Checkout</span>
+          </div>
+          <div class="dashboard-grid">
+            <div class="card">
+              <h3>⏰ Peak Hours Report</h3>
+              <p style="font-size:12px;color:var(--text-3);margin-top:2px">Busiest transaction hours of the day</p>
+              <div class="divider"></div>
+              <div id="basicPeakHours"></div>
+            </div>
+            <div class="card">
+              <h3>📋 Recent Orders Summary</h3>
+              <p style="font-size:12px;color:var(--text-3);margin-top:2px">Latest checkout transactions</p>
+              <div class="divider"></div>
+              <div id="basicRecentOrders"></div>
+            </div>
+          </div>
+
+        </div><!-- /basicReports -->
+
+        <!-- ══════════════════════════════════════════
+             PRO / PREMIUM ADVANCED REPORTS
+             Available to: Toylandia (Pro) & Hiraya Likhain (Premium)
+             ══════════════════════════════════════════ -->
+        <div id="advancedReports" class="hidden">
+
+          <!-- KPI Stats Row -->
+          <div class="stats-grid" id="advReportStats"></div>
+
+          <!-- ── Customer Reports ── -->
+          <div style="margin-top:20px;margin-bottom:8px">
+            <span style="font-family:var(--font-mono);font-size:10px;font-weight:700;color:var(--text-3);text-transform:uppercase;letter-spacing:0.1em">👥 Customer</span>
+          </div>
+          <div class="dashboard-grid">
+            <div class="card">
+              <h3>🔁 Customer Retention Rate</h3>
+              <p style="font-size:12px;color:var(--text-3);margin-top:2px">Repeat vs new customer breakdown</p>
+              <div class="divider"></div>
+              <div id="advRepeatCustomers"></div>
+            </div>
+            <div class="card">
+              <h3>💎 Customer Lifetime Value (CLV)</h3>
+              <p style="font-size:12px;color:var(--text-3);margin-top:2px">Total spend per customer across all orders</p>
+              <div class="divider"></div>
+              <div id="advClvTable"></div>
+            </div>
+          </div>
+          <div class="dashboard-grid" style="margin-top:16px">
+            <div class="card">
+              <h3>⭐ Loyalty &amp; Rewards Engagement</h3>
+              <p style="font-size:12px;color:var(--text-3);margin-top:2px">Points earned, redeemed &amp; top loyalty members</p>
+              <div class="divider"></div>
+              <div id="advLoyaltyEngagement"></div>
+            </div>
+            <div class="card">
+              <h3>🆕 New vs. Returning Customers</h3>
+              <p style="font-size:12px;color:var(--text-3);margin-top:2px">Monthly acquisition &amp; retention trends</p>
+              <div class="divider"></div>
+              <div id="advNewVsReturn"></div>
+            </div>
+          </div>
+
+          <!-- ── Sales Intelligence ── -->
+          <div style="margin-top:20px;margin-bottom:8px">
+            <span style="font-family:var(--font-mono);font-size:10px;font-weight:700;color:var(--text-3);text-transform:uppercase;letter-spacing:0.1em">📈 Sales Intelligence</span>
+          </div>
+          <div class="dashboard-grid">
+            <div class="card">
+              <h3>📅 Revenue Trend &amp; Forecast</h3>
+              <p style="font-size:12px;color:var(--text-3);margin-top:2px">7-day trend with projected next-week revenue</p>
+              <div class="divider"></div>
+              <div id="advDailySales"></div>
+            </div>
+            <div class="card">
+              <h3>🛒 Basket Analysis</h3>
+              <p style="font-size:12px;color:var(--text-3);margin-top:2px">Average items per transaction &amp; combo patterns</p>
+              <div class="divider"></div>
+              <div id="advBasketAnalysis"></div>
+            </div>
+          </div>
+          <div class="card" style="margin-top:16px">
+            <h3>🗂️ Category Performance Breakdown</h3>
+            <p style="font-size:12px;color:var(--text-3);margin-top:2px">Revenue contribution per product category</p>
+            <div class="divider"></div>
+            <div id="advCategoryRevenue"></div>
+          </div>
+          <div class="card" style="margin-top:16px">
+            <h3>🏷️ Top-Selling Products</h3>
+            <p style="font-size:12px;color:var(--text-3);margin-top:2px">Best performers ranked by revenue &amp; quantity sold</p>
+            <div class="divider"></div>
+            <div id="advTopProducts"></div>
+          </div>
+
+          <!-- ── Inventory Intelligence ── -->
+          <div style="margin-top:20px;margin-bottom:8px">
+            <span style="font-family:var(--font-mono);font-size:10px;font-weight:700;color:var(--text-3);text-transform:uppercase;letter-spacing:0.1em">📦 Inventory Intelligence</span>
+          </div>
+          <div class="dashboard-grid">
+            <div class="card">
+              <h3>📉 Inventory Turnover Rate</h3>
+              <p style="font-size:12px;color:var(--text-3);margin-top:2px">How quickly stock is sold &amp; replenished</p>
+              <div class="divider"></div>
+              <div id="advInventoryTurnover"></div>
+            </div>
+            <div class="card">
+              <h3>🗑️ Waste &amp; Loss Report</h3>
+              <p style="font-size:12px;color:var(--text-3);margin-top:2px">Expired, damaged &amp; unaccounted stock losses</p>
+              <div class="divider"></div>
+              <div id="advWasteLoss"></div>
+            </div>
+          </div>
+
+          <!-- ── Operations (Premium only) ── -->
+          <div id="premiumOnly" class="hidden">
+            <div style="margin-top:20px;margin-bottom:8px;display:flex;align-items:center;gap:10px">
+              <span style="font-family:var(--font-mono);font-size:10px;font-weight:700;color:var(--text-3);text-transform:uppercase;letter-spacing:0.1em">⚙️ Operations</span>
+              <span class="badge" style="background:var(--yellow-pale);color:var(--yellow);border:1px solid rgba(234,179,8,0.3);font-size:10px;padding:2px 8px">Premium</span>
+            </div>
+            <div class="dashboard-grid">
+              <div class="card">
+                <h3>🏪 Multi-Store Comparison</h3>
+                <p style="font-size:12px;color:var(--text-3);margin-top:2px">Performance benchmarks across store locations</p>
+                <div class="divider"></div>
+                <div id="advMultiStore"></div>
+              </div>
+              <div class="card">
+                <h3>📣 Customer Engagement Reports</h3>
+                <p style="font-size:12px;color:var(--text-3);margin-top:2px">Visit frequency, channel activity &amp; campaign reach</p>
+                <div class="divider"></div>
+                <div id="advCustomerEngagement"></div>
+              </div>
+            </div>
+            <div class="dashboard-grid" style="margin-top:16px">
+              <div class="card">
+                <h3>💸 Profit Margin per Product</h3>
+                <p style="font-size:12px;color:var(--text-3);margin-top:2px">Revenue contribution &amp; markup analysis</p>
+                <div class="divider"></div>
+                <div id="advProfitMargin"></div>
+              </div>
+              <div class="card">
+                <h3>⏰ Peak Sales Hours</h3>
+                <p style="font-size:12px;color:var(--text-3);margin-top:2px">Busiest transaction windows by hour</p>
+                <div class="divider"></div>
+                <div id="advPeakHours"></div>
+              </div>
+            </div>
+          </div><!-- /premiumOnly -->
+
+        </div><!-- /advancedReports -->
+      </section>
     </main>
   </div>
-
-  <!-- Product Modal (Client) -->
   <div class="modal-overlay hidden" id="modal-product-client">
     <div class="modal-box">
       <div class="modal-header">
@@ -549,6 +783,7 @@
         <div class="form-group"><label class="form-label">Stock Quantity *</label><input class="form-input" id="pStock" type="number" min="0" /></div>
         <div class="form-group"><label class="form-label">Low Stock Alert At</label><input class="form-input" id="pLowAt" type="number" min="1" value="10" /></div>
         <div class="form-group"><label class="form-label">Expiry Date</label><input class="form-input" id="pExpiry" type="date" /></div>
+        <div class="form-group" style="grid-column:1/-1"><label class="form-label" style="color:var(--blue)">Weight (grams) * <span style="font-size:11px;font-weight:400;color:var(--text-3)">Required — enter actual product weight</span></label><input class="form-input" id="pWeight" type="number" min="1" step="1" placeholder="e.g. 1030" /></div>
       </div>
       <datalist id="catSuggest">
         <option value="Dairy"><option value="Bakery"><option value="Meat"><option value="Produce">
@@ -586,7 +821,7 @@
                    oninput="sanitizeCashierUsername(this)" />
             <span id="cashierUsernameSuffix"
                   style="background:var(--surface-2);border:1.5px solid var(--border-strong);border-left:none;border-radius:0 var(--radius-sm) var(--radius-sm) 0;padding:10px 12px;font-family:var(--font-mono);font-size:12px;color:var(--blue);white-space:nowrap">
-              @store.cashier.pro
+              @storeid.cashier
             </span>
           </div>
           <small style="color:var(--text-3);font-size:11px;margin-top:4px;display:block" id="cashierUsernameHint">
@@ -607,8 +842,8 @@
         </div>
         <div class="cashier-login-hint" style="margin-top:14px">
           <div style="font-family:var(--font-mono);font-size:10px;color:var(--blue);text-transform:uppercase;letter-spacing:0.06em;margin-bottom:4px">📌 Login Format</div>
-          <div style="font-family:var(--font-mono);font-size:12px;color:var(--text)" id="cashierLoginFormatHint">username@storeid.cashier.pro</div>
-          <div style="font-size:11px;color:var(--text-muted);margin-top:3px">Each cashier has their own unique subdomain login</div>
+          <div style="font-family:var(--font-mono);font-size:12px;color:var(--text)" id="cashierLoginFormatHint">username@storeid.cashier</div>
+          <div style="font-size:11px;color:var(--text-muted);margin-top:3px">Each cashier has their own unique login</div>
         </div>
       </div>
       <div class="modal-footer">
@@ -697,6 +932,9 @@
       <section class="tab-panel hidden" id="tab-cashier-checkout">
         <div class="page-header">
           <div><h1>Checkout</h1><p class="page-subtitle">Scan customer QR code to process payment</p></div>
+          <div class="header-actions">
+            <span id="scaleStatusBadge" class="scale-status-badge">⚖️ Scale Simulated</span>
+          </div>
         </div>
         <div class="checkout-grid">
           <div class="card">
@@ -712,6 +950,22 @@
               <button class="btn btn-primary" onclick="startCheckoutScanner()">Start Scanner</button>
               <button class="btn btn-ghost" onclick="stopCheckoutScanner()">Stop</button>
               <button class="btn btn-ghost" onclick="manualQREntry()">⌨️ Manual Entry</button>
+            </div>
+            <div style="margin-top:16px;border-top:1px solid var(--border);padding-top:14px">
+              <div style="font-family:var(--font-body);font-size:12px;font-weight:600;color:var(--text-3);text-transform:uppercase;letter-spacing:0.07em;margin-bottom:8px">
+                🔢 Enter Text Code
+              </div>
+              <div style="font-family:var(--font-body);font-size:12px;color:var(--text-3);margin-bottom:10px">
+                If the QR can't be scanned, ask the customer for their 6-character code
+              </div>
+              <div style="display:flex;gap:8px">
+                <input id="checkoutTextCodeInput" class="form-input" type="text"
+                  placeholder="e.g. AB12CD" maxlength="6"
+                  style="flex:1;font-family:var(--font-mono);font-size:1.1rem;font-weight:700;letter-spacing:0.15em;text-transform:uppercase"
+                  oninput="this.value=this.value.toUpperCase()"
+                  onkeydown="if(event.key==='Enter')loadOrderByTextCode()" />
+                <button class="btn btn-primary" onclick="loadOrderByTextCode()">Load</button>
+              </div>
             </div>
           </div>
           <div class="card">
@@ -809,6 +1063,7 @@
         <div class="form-group"><label class="form-label">Stock *</label><input class="form-input" id="pStockC" type="number" min="0" /></div>
         <div class="form-group"><label class="form-label">Low Stock Alert</label><input class="form-input" id="pLowAtC" type="number" min="1" value="10" /></div>
         <div class="form-group"><label class="form-label">Expiry Date</label><input class="form-input" id="pExpiryC" type="date" /></div>
+        <div class="form-group" style="grid-column:1/-1"><label class="form-label" style="color:var(--blue)">Weight (grams) * <span style="font-size:11px;font-weight:400;color:var(--text-3)">Required — enter actual product weight</span></label><input class="form-input" id="pWeightC" type="number" min="1" step="1" placeholder="e.g. 1030" /></div>
       </div>
       <datalist id="catSuggestC">
         <option value="Dairy"><option value="Bakery"><option value="Meat"><option value="Beverages">
@@ -918,9 +1173,9 @@
     <header class="cust-header">
       <div class="cust-header-inner">
         <div class="cust-logo">
-          <img src="assets/logo.png" alt="SC" class="cust-logo-img" onerror="this.style.display='none'" />
+          <img src="assets/logo.png" alt="SC" id="custLogoImg" class="cust-logo-img" onerror="this.style.display='none'" />
           <div>
-            <div class="cust-logo-title">SHOP COMPANION</div>
+            <div class="cust-logo-title" id="custLogoTitle">SHOP COMPANION</div>
             <div class="cust-logo-sub" id="custStoreLabel">Customer View</div>
           </div>
         </div>
@@ -1045,6 +1300,7 @@
             <h2>Your Checkout QR</h2>
             <p style="color:var(--text-3);font-size:13px;margin:8px 0 20px">Show this to the cashier to process your payment</p>
             <div id="qrOutput" style="display:flex;justify-content:center;margin:0 auto 16px"></div>
+            <div id="qrTextCode"></div>
             <div id="qrCartSummary" style="margin-bottom:16px"></div>
             <div style="display:flex;gap:10px;flex-wrap:wrap;justify-content:center">
               <button class="btn btn-primary" onclick="regenerateQR()">🔄 Regenerate</button>
@@ -1124,6 +1380,10 @@
         updateStoreBadges?.(AuthState.currentUser?.storeName || 'Store', AuthState.currentUser?.storeId || 'grocery');
       }, 50);
     }
+    if (view === 'customer') {
+      const sid = AuthState?.currentStore?.id || sessionStorage.getItem('sc_selected_store') || 'grocery';
+      setTimeout(() => updateCustomerStoreBranding?.(sid), 80);
+    }
     if (view === 'cashier') { renderCashierDashboard?.(); renderCashierInventory?.(); }
     if (view === 'dev') { renderDevDashboard?.(); renderRetailers?.(); renderPlans?.(); }
   }
@@ -1147,10 +1407,13 @@
   }
 </script>
 
+<!-- Supabase -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="supabase.js"></script>
 <script src="shared.js"></script>
+<script src="auth.js"></script>
 <script src="admin.js"></script>
 <script src="customer.js"></script>
-<script src="auth.js"></script>
 
 <!-- Shop Companion 3.0 Extensions — FIXED v3.1 -->
 <script>
@@ -1407,6 +1670,7 @@ function clientSwitchTab(tab, el) {
   if (tab === 'client-inventory') renderClientInventory?.();
   if (tab === 'client-orders')    renderOrders?.();
   if (tab === 'client-cashiers')  renderCashiersTable?.();
+  if (tab === 'client-reports')   setTimeout(() => renderClientReports?.(), 0);
   if (tab !== 'client-scan')      stopClientScanner();
 }
 
@@ -1428,12 +1692,16 @@ function devSwitchTab(tab, el) {
    ══════════════════════════════════════════════════════════════ */
 
 function _getCashierStoreSlug() {
-  const storeId = AuthState.currentUser?.storeId || 'store';
-  return storeId;
+  const user = AuthState.currentUser;
+  // Use storeName slug (e.g. 'jdcgrocery') and plan (e.g. 'pro')
+  const storeName = (user?.storeName || user?.storeId || 'store')
+    .toLowerCase().replace(/\s+/g, '').replace(/[^a-z0-9]/g, '');
+  const plan = (user?.plan || 'basic').toLowerCase();
+  return { storeName, plan };
 }
 
-function _buildCashierLogin(username, storeSlug) {
-  return `${username}@${storeSlug}.cashier.pro`;
+function _buildCashierLogin(username, storeNameSlug, plan) {
+  return `${username}@${storeNameSlug}.cashier.${plan}`;
 }
 
 /* Live username preview in modal */
@@ -1453,15 +1721,15 @@ function sanitizeCashierUsername(input) {
 
 function _refreshCashierLoginPreview() {
   const username   = document.getElementById('cashierFormUsername')?.value.trim() || '';
-  const storeSlug  = _getCashierStoreSlug();
+  const { storeName, plan } = _getCashierStoreSlug();
   const suffixEl   = document.getElementById('cashierUsernameSuffix');
   const previewEl  = document.getElementById('cashierFullLoginPreview');
   const formatEl   = document.getElementById('cashierLoginFormatHint');
 
-  if (suffixEl)  suffixEl.textContent  = `@${storeSlug}.cashier.pro`;
-  const full = username ? _buildCashierLogin(username, storeSlug) : '—';
+  if (suffixEl)  suffixEl.textContent  = `@${storeName}.cashier.${plan}`;
+  const full = username ? _buildCashierLogin(username, storeName, plan) : '—';
   if (previewEl) previewEl.textContent  = full;
-  if (formatEl)  formatEl.textContent   = `username@${storeSlug}.cashier.pro`;
+  if (formatEl)  formatEl.textContent   = `username@${storeName}.cashier.${plan}`;
 }
 
 function openAddCashierModal() {
@@ -1491,8 +1759,8 @@ function saveCashierAccount() {
   const user = AuthState.currentUser;
   if (!user?.email) { toast('Not logged in as client', 'error'); return; }
 
-  const storeSlug  = _getCashierStoreSlug();
-  const loginEmail = _buildCashierLogin(username, storeSlug);
+  const { storeName: storeNameSlug, plan } = _getCashierStoreSlug();
+  const loginEmail = _buildCashierLogin(username, storeNameSlug, plan);
   const cashiers   = MultiStore.getCashiers(user.email);
 
   // Check for duplicate username
@@ -1508,7 +1776,8 @@ function saveCashierAccount() {
     loginEmail,
     password,
     role,
-    storeSlug,
+    storeSlug:   storeNameSlug,
+    plan,
     added:       new Date().toISOString().slice(0, 10),
     status:      'active'
   };
@@ -1517,7 +1786,7 @@ function saveCashierAccount() {
   MultiStore.saveCashiers(user.email, cashiers);
 
   // Also register this cashier in AUTH_CONFIG so they can actually log in
-  _registerCashierInAuth(loginEmail, password, storeSlug, user.storeId, user.storeName);
+  _registerCashierInAuth(loginEmail, password, storeNameSlug, user.storeId, user.storeName);
 
   closeModal('modal-cashier');
   renderCashiersTable();
@@ -1560,8 +1829,8 @@ function renderCashiersTable() {
   const user = AuthState.currentUser;
   if (!user?.email) return;
 
-  const storeSlug   = _getCashierStoreSlug();
-  const loginFormat = `username@${storeSlug}.cashier.pro`;
+  const { storeName: storeNameSlug, plan } = _getCashierStoreSlug();
+  const loginFormat = `username@${storeNameSlug}.cashier.${plan}`;
   const hintEl      = document.getElementById('cashierLoginEmail');
   if (hintEl) hintEl.textContent = loginFormat;
 
@@ -1579,7 +1848,7 @@ function renderCashiersTable() {
   tbody.innerHTML = cashiers.map(c => `
     <tr>
       <td style="font-weight:600">${c.name}</td>
-      <td style="font-family:var(--font-mono);color:var(--blue);font-size:12px">${c.loginEmail || c.username + '@' + (c.storeSlug || storeSlug) + '.cashier.pro'}</td>
+      <td style="font-family:var(--font-mono);color:var(--blue);font-size:12px">${c.loginEmail || `${c.username}@${c.storeSlug || storeNameSlug}.cashier.${c.plan || plan}`}</td>
       <td><span class="badge badge-gray" style="font-size:10px;text-transform:capitalize">${c.role || 'cashier'}</span></td>
       <td style="color:var(--text-3);font-size:12px">${c.added}</td>
       <td><span class="badge ${c.status === 'active' ? 'badge-green' : 'badge-gray'}">${c.status}</span></td>
@@ -1608,42 +1877,49 @@ function toggleCashierStatus(id) {
 
 /* Seed demo cashiers for each demo store on first use */
 function seedDemoCashiers() {
+  // Passwords for the PRIMARY cashier per store MUST match AUTH_CONFIG.cashiers
+  // in auth.js (mariasantos→maria333, markreyes→markreyes, junecruz→junecruz123)
+  // so the Cashier Login screen and the Client Panel Cashiers tab are in sync.
   const demoAccounts = {
-    'jdcgrocery@pro': {
-      storeId: 'grocery', storeName: 'JDC Grocery',
+    'jdcgrocery@astech.pro': {
+      storeId: 'grocery', storeName: 'JDC Grocery', plan: 'pro',
       cashiers: [
-        { id: 'CSH001', name: 'Maria Santos',  username: 'mariasantos',  loginEmail: 'mariasantos@grocery.cashier.pro',  password: 'Maria123',  role: 'senior',     storeSlug: 'grocery', added: '2025-01-15', status: 'active' },
-        { id: 'CSH002', name: 'Pedro Reyes',   username: 'pedroreyes',   loginEmail: 'pedroreyes@grocery.cashier.pro',   password: 'Pedro123',  role: 'cashier',    storeSlug: 'grocery', added: '2025-02-10', status: 'active' },
-        { id: 'CSH003', name: 'Ana Villanueva',username: 'anavillanueva',loginEmail: 'anavillanueva@grocery.cashier.pro',password: 'Ana123',    role: 'cashier',    storeSlug: 'grocery', added: '2025-03-05', status: 'active' },
-        { id: 'CSH004', name: 'Rico Dela Cruz', username: 'ricodc',      loginEmail: 'ricodc@grocery.cashier.pro',       password: 'Rico123',   role: 'supervisor', storeSlug: 'grocery', added: '2025-01-01', status: 'active' },
+        { id: 'CSH001', name: 'Maria Santos',   username: 'mariasantos',   loginEmail: 'mariasantos@jdcgrocery.cashier.pro',   password: 'maria333', role: 'senior',     storeSlug: 'jdcgrocery', added: '2025-01-15', status: 'active' },
+        { id: 'CSH002', name: 'Pedro Reyes',    username: 'pedroreyes',    loginEmail: 'pedroreyes@jdcgrocery.cashier.pro',    password: 'Pedro123', role: 'cashier',    storeSlug: 'jdcgrocery', added: '2025-02-10', status: 'active' },
+        { id: 'CSH003', name: 'Ana Villanueva', username: 'anavillanueva', loginEmail: 'anavillanueva@jdcgrocery.cashier.pro', password: 'Ana123',   role: 'cashier',    storeSlug: 'jdcgrocery', added: '2025-03-05', status: 'active' },
+        { id: 'CSH004', name: 'Rico Dela Cruz', username: 'ricodc',        loginEmail: 'ricodc@jdcgrocery.cashier.pro',        password: 'Rico123',  role: 'supervisor', storeSlug: 'jdcgrocery', added: '2025-01-01', status: 'active' },
       ]
     },
-    'toystore@pro': {
-      storeId: 'toy', storeName: 'Toy Kingdom',
+    'toylandia@astech.pro': {
+      storeId: 'toy', storeName: 'Toylandia', plan: 'pro',
       cashiers: [
-        { id: 'CSH101', name: 'Lina Gomez',    username: 'linagomez',    loginEmail: 'linagomez@toy.cashier.pro',     password: 'Lina123',   role: 'senior',  storeSlug: 'toy', added: '2025-01-20', status: 'active' },
-        { id: 'CSH102', name: 'Bong Aquino',   username: 'bongaquino',   loginEmail: 'bongaquino@toy.cashier.pro',    password: 'Bong123',   role: 'cashier', storeSlug: 'toy', added: '2025-02-15', status: 'active' },
-        { id: 'CSH103', name: 'Claire Tan',    username: 'clairetan',    loginEmail: 'clairetan@toy.cashier.pro',     password: 'Claire123', role: 'cashier', storeSlug: 'toy', added: '2025-03-01', status: 'suspended' },
+        { id: 'CSH101', name: 'Mark Reyes',  username: 'markreyes',  loginEmail: 'markreyes@toylandia.cashier.pro',  password: 'markreyes', role: 'senior',  storeSlug: 'toylandia', added: '2025-01-20', status: 'active' },
+        { id: 'CSH102', name: 'Bong Aquino', username: 'bongaquino', loginEmail: 'bongaquino@toylandia.cashier.pro', password: 'Bong123',   role: 'cashier', storeSlug: 'toylandia', added: '2025-02-15', status: 'active' },
+        { id: 'CSH103', name: 'Claire Tan',  username: 'clairetan',  loginEmail: 'clairetan@toylandia.cashier.pro',  password: 'Claire123', role: 'cashier', storeSlug: 'toylandia', added: '2025-03-01', status: 'active' },
       ]
     },
-    'schoolsupplies@pro': {
-      storeId: 'school', storeName: 'School Hub',
+    'hirayal@astech.premium': {
+      storeId: 'school', storeName: 'Hiraya Likhain', plan: 'premium',
       cashiers: [
-        { id: 'CSH201', name: 'Donna Cruz',    username: 'donnacruz',    loginEmail: 'donnacruz@school.cashier.pro',  password: 'Donna123',  role: 'supervisor', storeSlug: 'school', added: '2025-01-10', status: 'active' },
-        { id: 'CSH202', name: 'Mark Lopez',    username: 'marklopez',    loginEmail: 'marklopez@school.cashier.pro',  password: 'Mark123',   role: 'cashier',    storeSlug: 'school', added: '2025-02-20', status: 'active' },
+        { id: 'CSH201', name: 'Donna Cruz', username: 'donnacruz', loginEmail: 'donnacruz@hirayal.cashier.premium', password: 'Donna123',    role: 'supervisor', storeSlug: 'hirayal', added: '2025-01-10', status: 'active' },
+        { id: 'CSH202', name: 'Mark Lopez', username: 'marklopez', loginEmail: 'marklopez@hirayal.cashier.premium', password: 'Mark123',     role: 'cashier',    storeSlug: 'hirayal', added: '2025-02-20', status: 'active' },
+        { id: 'CSH203', name: 'June Cruz',  username: 'junecruz',  loginEmail: 'junecruz@hirayal.cashier.premium',  password: 'junecruz123', role: 'cashier',    storeSlug: 'hirayal', added: '2025-03-15', status: 'active' },
       ]
     }
   };
 
   Object.entries(demoAccounts).forEach(([clientEmail, data]) => {
     const key = `sc_cashiers_${clientEmail}`;
+    // Seed the table rows only once (don't overwrite client-added cashiers)
     if (!localStorage.getItem(key)) {
       localStorage.setItem(key, JSON.stringify(data.cashiers));
-      // Register in auth
-      data.cashiers.forEach(c => {
-        _registerCashierInAuth(c.loginEmail, c.password, c.storeSlug, data.storeId, data.storeName);
-      });
     }
+    // ALWAYS re-register credentials in sc_custom_cashiers so the login patch
+    // can authenticate demo cashiers even after a fresh browser session clears
+    // sc_custom_cashiers but leaves the table keys intact.
+    data.cashiers.forEach(c => {
+      _registerCashierInAuth(c.loginEmail, c.password, c.storeSlug, data.storeId, data.storeName);
+    });
   });
 }
 
@@ -1715,6 +1991,28 @@ function updateStoreBadgesLocal(storeName, storeId) {
     const d = defs[storeId] || { icon: '🏪', color: 'var(--blue)' };
     strip.innerHTML = `<span class="store-badge" style="background:${d.color}20;border-color:${d.color}40;color:${d.color}">${d.icon} ${storeName}</span>`;
   }
+}
+
+/* ── Customer panel store branding ── */
+const CUST_LOGO_MAP = {
+  grocery: { logo: 'assets/JDCGrocery_Logo.png',    name: 'JDC Grocery'    },
+  toy:     { logo: 'assets/Toylandia_Logo.png',      name: 'Toylandia'      },
+  school:  { logo: 'assets/HirayaLikhain_Logo.png',  name: 'Hiraya Likhain' }
+};
+
+function updateCustomerStoreBranding(storeId) {
+  const brand = CUST_LOGO_MAP[storeId] || null;
+  const imgEl   = document.getElementById('custLogoImg');
+  const titleEl = document.getElementById('custLogoTitle');
+  const labelEl = document.getElementById('custStoreLabel');
+  if (!brand) return;
+  if (imgEl) {
+    imgEl.src = brand.logo;
+    imgEl.alt = brand.name;
+    imgEl.style.display = '';
+  }
+  if (titleEl) titleEl.textContent = brand.name;
+  if (labelEl) labelEl.textContent = 'Customer View';
 }
 
 /* Mirror cart badge to bottom nav */

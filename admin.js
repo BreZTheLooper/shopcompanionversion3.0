@@ -40,18 +40,95 @@ function switchPanelTab(prefix, tab, el) {
 
 function devSwitchTab(tab, el) {
   switchPanelTab('dev', tab, el);
-  if (tab === 'dev-retailers')     renderRetailers();
+  if (tab === 'dev-retailers')     loadAndRenderRetailers();
   if (tab === 'dev-subscriptions') renderPlans();
   if (tab === 'dev-customers')     renderDevCustomers();
   if (tab === 'dev-stores')        { renderDevStoreMonitor && renderDevStoreMonitor(); renderDevInventoryTable && renderDevInventoryTable(); }
+}
+
+/* Pull retailers from Supabase and sync to localStorage before rendering */
+function loadAndRenderRetailers() {
+  if (typeof DB !== 'undefined') {
+    DB.getRetailers().then(retailers => {
+      if (retailers && retailers.length) {
+        // Merge into localStorage: Supabase is source of truth for dev panel
+        const existing = Retailers.getAll();
+        const existingIds = new Set(existing.map(r => r.id));
+        const merged = [...existing];
+        retailers.forEach(r => {
+          if (!existingIds.has(r.id)) merged.push(r);
+          else {
+            const idx = merged.findIndex(x => x.id === r.id);
+            if (idx !== -1) merged[idx] = { ...merged[idx], ...r };
+          }
+        });
+        Retailers.save(merged);
+      }
+      renderRetailers();
+      renderDevDashboard();
+    }).catch(() => renderRetailers());
+  } else {
+    renderRetailers();
+  }
 }
 
 function clientSwitchTab(tab, el) {
   switchPanelTab('client', tab, el);
   if (tab === 'client-dashboard') renderClientDashboard();
   if (tab === 'client-inventory') renderClientInventory();
-  if (tab === 'client-orders')    renderOrders();
+  if (tab === 'client-orders')    loadAndRenderOrders();
+  if (tab === 'client-cashiers')  loadAndRenderCashiersTable();
+  if (tab === 'client-reports')   setTimeout(renderClientReports, 0);
   if (tab !== 'cashier-checkout') stopCheckoutScanner();
+}
+
+/* Pull orders from Supabase into localStorage cache before rendering */
+function loadAndRenderOrders() {
+  const storeId = AuthState.currentUser?.storeId;
+  if (storeId && typeof DB !== 'undefined') {
+    DB.getOrders(storeId).then(orders => {
+      if (orders && orders.length) {
+        // Merge with any orders already in localStorage (avoid duplicates)
+        const local = Orders.getAll();
+        const localIds = new Set(local.map(o => o.id));
+        const newOrders = orders.filter(o => !localIds.has(o.id));
+        if (newOrders.length) {
+          Orders.save([...newOrders, ...local]);
+        }
+      }
+      renderOrders();
+    }).catch(() => renderOrders());
+  } else {
+    renderOrders();
+  }
+}
+
+/* Pull cashiers from Supabase into localStorage cache before rendering */
+function loadAndRenderCashiersTable() {
+  const user = AuthState.currentUser;
+  if (user?.email && typeof DB !== 'undefined') {
+    DB.getCashiers(user.email).then(cashiers => {
+      if (cashiers && cashiers.length) {
+        // Sync into MultiStore (localStorage) cache
+        const existing = MultiStore.getCashiers(user.email);
+        const existingIds = new Set(existing.map(c => c.id));
+        const merged = [...existing];
+        cashiers.forEach(c => {
+          if (!existingIds.has(c.id)) merged.push(c);
+          else {
+            const idx = merged.findIndex(x => x.id === c.id);
+            if (idx !== -1) merged[idx] = { ...merged[idx], ...c };
+          }
+        });
+        MultiStore.saveCashiers(user.email, merged);
+      }
+      if (typeof renderCashiersTable === 'function') renderCashiersTable();
+    }).catch(() => {
+      if (typeof renderCashiersTable === 'function') renderCashiersTable();
+    });
+  } else {
+    if (typeof renderCashiersTable === 'function') renderCashiersTable();
+  }
 }
 
 function cashierSwitchTab(tab, el) {
@@ -127,47 +204,58 @@ function renderDevCustomers() {
   const tbody = document.getElementById('devCustomersBody');
   if (!tbody) return;
 
-  // Gather from global customer store (auth system) + legacy customers
-  const globalCustomers = JSON.parse(localStorage.getItem('sc_global_customers') || '[]');
-  const legacyCustomers = (Store.get('customers') || []).map(c => ({
-    id: c.id,
-    name: c.name,
-    email: c.email || '',
-    joined: c.joined || '—',
-    lastLogin: '—',
-    totalOrders: c.totalOrders || 0,
-    source: 'legacy'
-  }));
+  // Show loading state
+  tbody.innerHTML = `<tr><td colspan="6" style="text-align:center;padding:24px;color:var(--text-3);font-family:var(--font-body)">Loading customers…</td></tr>`;
 
-  const globalFormatted = globalCustomers.map(c => ({
-    id: c.id,
-    name: c.name,
-    email: c.email || '',
-    joined: c.joined || '—',
-    lastLogin: c.lastLogin || '—',
-    totalOrders: c.totalOrders || 0,
-    source: 'registered'
-  }));
+  // Helper: merge and display from an array of customers
+  const _buildAndRender = (supabaseCustomers) => {
+    const globalFormatted = supabaseCustomers.map(c => ({
+      id:          c.id,
+      name:        c.name,
+      email:       c.email || '',
+      joined:      c.joined || '—',
+      lastLogin:   c.lastLogin || '—',
+      totalOrders: c.totalOrders || 0,
+      source:      'registered'
+    }));
 
-  // Merge, deduplicate by email
-  const seen = new Set();
-  _devCustData = [...globalFormatted, ...legacyCustomers].filter(c => {
-    if (!c.email || seen.has(c.email)) return false;
-    seen.add(c.email); return true;
-  });
+    // Also include localStorage legacy customers, de-duplicated by email
+    const legacyCustomers = (Store.get('customers') || []).map(c => ({
+      id: c.id, name: c.name, email: c.email || '',
+      joined: c.joined || '—', lastLogin: '—',
+      totalOrders: c.totalOrders || 0, source: 'legacy'
+    }));
 
-  // Demo fallback if empty
-  if (!_devCustData.length) {
-    _devCustData = [
-      { id: 'GC001', name: 'Mark Santos',  email: 'mark@gmail.com',  joined: '2025-01-10', lastLogin: '2025-05-14', totalOrders: 5,  source: 'registered' },
-      { id: 'GC002', name: 'Ana Reyes',    email: 'ana@gmail.com',   joined: '2025-02-03', lastLogin: '2025-05-10', totalOrders: 3,  source: 'registered' },
-      { id: 'C001',  name: 'Maria Santos', email: 'maria@email.com', joined: '2024-01-15', lastLogin: '—',          totalOrders: 12, source: 'legacy'     },
-      { id: 'C002',  name: 'Jose Reyes',   email: 'jose@email.com',  joined: '2024-02-20', lastLogin: '—',          totalOrders: 8,  source: 'legacy'     },
-      { id: 'C003',  name: 'Ana Cruz',     email: 'ana@email.com',   joined: '2024-03-10', lastLogin: '—',          totalOrders: 5,  source: 'legacy'     },
-    ];
+    const seen = new Set();
+    _devCustData = [...globalFormatted, ...legacyCustomers].filter(c => {
+      if (!c.email || seen.has(c.email)) return false;
+      seen.add(c.email); return true;
+    });
+
+    if (!_devCustData.length) {
+      _devCustData = [
+        { id: 'GC001', name: 'Mark Santos',  email: 'mark@gmail.com',  joined: '2025-01-10', lastLogin: '2025-05-14', totalOrders: 5,  source: 'registered' },
+        { id: 'GC002', name: 'Ana Reyes',    email: 'ana@gmail.com',   joined: '2025-02-03', lastLogin: '2025-05-10', totalOrders: 3,  source: 'registered' },
+        { id: 'C001',  name: 'Maria Santos', email: 'maria@email.com', joined: '2024-01-15', lastLogin: '—',          totalOrders: 12, source: 'legacy'     },
+        { id: 'C002',  name: 'Jose Reyes',   email: 'jose@email.com',  joined: '2024-02-20', lastLogin: '—',          totalOrders: 8,  source: 'legacy'     },
+        { id: 'C003',  name: 'Ana Cruz',     email: 'ana@email.com',   joined: '2024-03-10', lastLogin: '—',          totalOrders: 5,  source: 'legacy'     },
+      ];
+    }
+    _renderDevCustomersTable(_devCustData);
+  };
+
+  // Pull from Supabase; fall back to localStorage on error
+  if (typeof DB !== 'undefined') {
+    DB.getCustomers().then(customers => {
+      _buildAndRender(customers || []);
+    }).catch(() => {
+      const localCustomers = JSON.parse(localStorage.getItem('sc_global_customers') || '[]');
+      _buildAndRender(localCustomers);
+    });
+  } else {
+    const localCustomers = JSON.parse(localStorage.getItem('sc_global_customers') || '[]');
+    _buildAndRender(localCustomers);
   }
-
-  _renderDevCustomersTable(_devCustData);
 }
 
 function _renderDevCustomersTable(data) {
@@ -545,14 +633,14 @@ function openAddProductModal(panel = 'client') {
   if (panel === 'cashier') {
     // Fill cashier modal
     document.getElementById('prodEditIdCashier').value = '';
-    ['pNameC','pImageC','pBarcodeC','pCategoryC','pTypeC','pUnitC','pPriceC','pStockC','pExpiryC'].forEach(id => {
+    ['pNameC','pImageC','pBarcodeC','pCategoryC','pTypeC','pUnitC','pPriceC','pStockC','pExpiryC','pWeightC'].forEach(id => {
       const el = document.getElementById(id); if (el) el.value = '';
     });
     document.getElementById('pLowAtC').value = '10';
     openModal('modal-product-cashier');
   } else {
     document.getElementById('prodEditId').value = '';
-    ['pName','pImage','pBarcode','pCategory','pType','pUnit','pPrice','pStock','pExpiry'].forEach(id => {
+    ['pName','pImage','pBarcode','pCategory','pType','pUnit','pPrice','pStock','pExpiry','pWeight'].forEach(id => {
       const el = document.getElementById(id); if (el) el.value = '';
     });
     document.getElementById('pLowAt').value = '10';
@@ -576,6 +664,7 @@ function openEditProductModal(id, panel = 'client') {
     document.getElementById('pStockC').value     = p.stock||'';
     document.getElementById('pLowAtC').value     = p.lowStockAt||10;
     document.getElementById('pExpiryC').value    = p.expiry||'';
+    document.getElementById('pWeightC').value    = p.weightGrams||'';
     openModal('modal-product-cashier');
   } else {
     document.getElementById('prodEditId').value      = p.id;
@@ -589,6 +678,7 @@ function openEditProductModal(id, panel = 'client') {
     document.getElementById('pStock').value          = p.stock||'';
     document.getElementById('pLowAt').value          = p.lowStockAt||10;
     document.getElementById('pExpiry').value         = p.expiry||'';
+    document.getElementById('pWeight').value         = p.weightGrams||'';
     document.getElementById('prodModalTitle').textContent = 'Edit Product';
     openModal('modal-product-client');
   }
@@ -599,26 +689,39 @@ function saveProduct(panel = 'client') {
   const suffix    = isCashier ? 'C' : '';
   const editId    = document.getElementById(isCashier ? 'prodEditIdCashier' : 'prodEditId').value;
 
+  const weightRaw = parseFloat(document.getElementById('pWeight' + suffix).value);
+
   const data = {
-    name:      document.getElementById('pName' + suffix).value.trim(),
-    image:     document.getElementById('pImage' + suffix).value.trim() || '📦',
-    barcode:   document.getElementById('pBarcode' + suffix).value.trim(),
-    category:  document.getElementById('pCategory' + suffix).value.trim(),
-    type:      document.getElementById('pType' + suffix).value.trim(),
-    unit:      document.getElementById('pUnit' + suffix).value.trim() || 'unit',
-    price:     parseFloat(document.getElementById('pPrice' + suffix).value) || 0,
-    stock:     parseInt(document.getElementById('pStock' + suffix).value) || 0,
-    lowStockAt:parseInt(document.getElementById('pLowAt' + suffix).value) || 10,
-    expiry:    document.getElementById('pExpiry' + suffix).value,
+    name:        document.getElementById('pName' + suffix).value.trim(),
+    image:       document.getElementById('pImage' + suffix).value.trim() || '📦',
+    barcode:     document.getElementById('pBarcode' + suffix).value.trim(),
+    category:    document.getElementById('pCategory' + suffix).value.trim(),
+    type:        document.getElementById('pType' + suffix).value.trim(),
+    unit:        document.getElementById('pUnit' + suffix).value.trim() || 'unit',
+    price:       parseFloat(document.getElementById('pPrice' + suffix).value) || 0,
+    stock:       parseInt(document.getElementById('pStock' + suffix).value) || 0,
+    lowStockAt:  parseInt(document.getElementById('pLowAt' + suffix).value) || 10,
+    expiry:      document.getElementById('pExpiry' + suffix).value,
+    weightGrams: weightRaw,
   };
 
   if (!data.name) { toast('Product name is required', 'warning'); return; }
+  if (!weightRaw || isNaN(weightRaw) || weightRaw <= 0) {
+    toast('Weight (grams) is required — enter the real product weight', 'warning');
+    document.getElementById('pWeight' + suffix)?.focus();
+    return;
+  }
 
   if (editId) {
     Inventory.update(editId, data);
     toast('Product updated ✅', 'success');
   } else {
-    Inventory.add(data);
+    try {
+      Inventory.add(data);
+    } catch (e) {
+      toast(e.message || 'Failed to add product', 'error');
+      return;
+    }
     toast('Product added ✅', 'success');
   }
 
@@ -755,6 +858,636 @@ function renderOrders() {
     </tr>`).join('');
 }
 
+/* ── Reports ── */
+function renderClientReports() {
+  // Read plan from AuthState, or fall back to sessionStorage, then default to 'basic'
+  let plan = 'basic';
+  try {
+    plan = (AuthState.currentUser?.plan ||
+            JSON.parse(sessionStorage.getItem('sc_auth') || '{}')?.user?.plan ||
+            'basic').toLowerCase();
+  } catch(e) { plan = 'basic'; }
+  const isAdvanced = (plan === 'pro' || plan === 'premium');
+  const isPremium  = (plan === 'premium');
+
+  // Update badge & subtitle
+  const badge = document.getElementById('reportsPlanBadge');
+  const subtitle = document.getElementById('reportsSubtitle');
+  if (badge) {
+    badge.textContent = plan.charAt(0).toUpperCase() + plan.slice(1) + ' Plan';
+    badge.style.background = isPremium ? 'var(--yellow-pale)' : isAdvanced ? 'var(--blue-pale)' : 'var(--surface-2)';
+    badge.style.color = isPremium ? 'var(--yellow)' : isAdvanced ? 'var(--blue)' : 'var(--text-3)';
+    badge.style.border = `1px solid ${isPremium ? 'rgba(234,179,8,0.3)' : isAdvanced ? 'rgba(26,95,212,0.2)' : 'var(--border)'}`;
+  }
+  if (subtitle) subtitle.textContent = isAdvanced ? 'Advanced analytics & customer intelligence' : 'Sales summary & stock overview';
+
+  // Show correct section
+  const basicEl    = document.getElementById('basicReports');
+  const advancedEl = document.getElementById('advancedReports');
+  if (isAdvanced) {
+    basicEl?.classList.add('hidden');
+    advancedEl?.classList.remove('hidden');
+    const premiumEl = document.getElementById('premiumOnly');
+    if (premiumEl) isPremium ? premiumEl.classList.remove('hidden') : premiumEl.classList.add('hidden');
+    try { _renderAdvancedReports(isPremium); } catch(e) { console.error('Reports render error:', e); }
+  } else {
+    basicEl?.classList.remove('hidden');
+    advancedEl?.classList.add('hidden');
+    try { _renderBasicReports(); } catch(e) { console.error('Reports render error:', e); }
+  }
+}
+
+function _renderBasicReports() {
+  const orders    = Orders.getAll();
+  const inv       = Inventory.getAll();
+  const totalRev  = Orders.totalRevenue();
+  const todayRev  = Orders.todayRevenue();
+  const avgOrder  = orders.length ? (totalRev / orders.length) : 0;
+
+  // KPI stats
+  const statsEl = document.getElementById('basicReportStats');
+  if (statsEl) statsEl.innerHTML = `
+    ${devStatCard('💰', 'Total Revenue',     formatPHP(totalRev),  'green')}
+    ${devStatCard('📅', "Today's Sales",     formatPHP(todayRev),  'blue')}
+    ${devStatCard('📋', 'Total Orders',       orders.length,        'blue')}
+    ${devStatCard('🧾', 'Avg. Order Value',  formatPHP(avgOrder),  'green')}
+  `;
+
+  // ── SALES: Daily sales summary (last 7 days) ──
+  const dailyEl = document.getElementById('basicDailySales');
+  if (dailyEl) {
+    const days = _getLast7Days();
+    if (!days.some(d => d.revenue > 0)) {
+      dailyEl.innerHTML = `<div class="empty-state"><div class="empty-icon">📅</div><p>No sales data yet</p></div>`;
+    } else {
+      dailyEl.innerHTML = days.map(d => `
+        <div class="revenue-row">
+          <span style="font-family:var(--font-body)">${d.label}</span>
+          <span style="font-family:var(--font-mono);color:var(--text-3)">${d.count} orders</span>
+          <span style="font-family:var(--font-mono);color:var(--green);font-weight:700">${formatPHP(d.revenue)}</span>
+        </div>`).join('');
+    }
+  }
+
+  // ── SALES: Top products ──
+  const topEl = document.getElementById('basicTopProducts');
+  if (topEl) {
+    const top = _getTopProducts(orders, 6);
+    if (!top.length) {
+      topEl.innerHTML = `<div class="empty-state"><div class="empty-icon">🏷️</div><p>No sales yet</p></div>`;
+    } else {
+      topEl.innerHTML = top.map((p, i) => `
+        <div class="revenue-row">
+          <span style="font-family:var(--font-body)">${['🥇','🥈','🥉','4️⃣','5️⃣','6️⃣'][i] || (i+1)+'.'} ${p.name}</span>
+          <span style="font-family:var(--font-mono);color:var(--text-3)">${p.qty} sold</span>
+          <span style="font-family:var(--font-mono);color:var(--green);font-weight:700">${formatPHP(p.revenue)}</span>
+        </div>`).join('');
+    }
+  }
+
+  // ── SALES: Cashier Performance ──
+  const cashierEl = document.getElementById('basicCashierPerformance');
+  if (cashierEl) {
+    const cashierMap = {};
+    orders.forEach(o => {
+      const k = o.cashier || o.processedBy || 'POS System';
+      if (!cashierMap[k]) cashierMap[k] = { name: k, orders: 0, total: 0 };
+      cashierMap[k].orders++;
+      cashierMap[k].total += (o.total || 0);
+    });
+    const cashiers = Object.values(cashierMap).sort((a, b) => b.total - a.total);
+    if (!cashiers.length) {
+      cashierEl.innerHTML = `<div class="empty-state"><div class="empty-icon">🧑‍💼</div><p>No cashier data yet</p></div>`;
+    } else {
+      cashierEl.innerHTML = `
+        <table style="width:100%;font-size:13px">
+          <thead><tr style="color:var(--text-3);font-family:var(--font-body)">
+            <th style="text-align:left;padding:6px 0">Cashier</th>
+            <th style="text-align:center">Orders</th>
+            <th style="text-align:right">Total Sales</th>
+          </tr></thead>
+          <tbody>${cashiers.map((c, i) => `<tr style="border-top:1px solid var(--border)">
+            <td style="padding:7px 0;font-family:var(--font-body)">${['🥇','🥈','🥉'][i] || ''} ${c.name}</td>
+            <td style="text-align:center;font-family:var(--font-mono);color:var(--text-3)">${c.orders}</td>
+            <td style="text-align:right;font-family:var(--font-mono);color:var(--green);font-weight:700">${formatPHP(c.total)}</td>
+          </tr>`).join('')}</tbody>
+        </table>`;
+    }
+  }
+
+  // ── INVENTORY: Low Stock Alerts ──
+  const lowAlertEl = document.getElementById('basicLowStockAlert');
+  if (lowAlertEl) {
+    const lowItems = inv.filter(p => Inventory.isLowStock(p) || p.stock === 0).sort((a,b) => a.stock - b.stock);
+    if (!lowItems.length) {
+      lowAlertEl.innerHTML = `<div class="empty-state"><div class="empty-icon">✅</div><p>All items are well-stocked</p></div>`;
+    } else {
+      lowAlertEl.innerHTML = lowItems.slice(0, 8).map(p => `
+        <div class="revenue-row">
+          <span style="font-family:var(--font-body)">${p.image || '📦'} ${p.name}</span>
+          <span class="badge ${p.stock === 0 ? 'stock-badge-out' : 'stock-badge-low'}">${p.stock === 0 ? 'Out' : p.stock + ' left'}</span>
+        </div>`).join('');
+    }
+  }
+
+  // ── INVENTORY: Expiry Monitoring ──
+  const expiryEl = document.getElementById('basicExpiryMonitor');
+  if (expiryEl) {
+    const today = new Date();
+    const in30  = new Date(); in30.setDate(in30.getDate() + 30);
+    const expiring = inv.filter(p => p.expiry && new Date(p.expiry) <= in30).sort((a,b) => new Date(a.expiry) - new Date(b.expiry));
+    if (!expiring.length) {
+      expiryEl.innerHTML = `<div class="empty-state"><div class="empty-icon">✅</div><p>No items expiring soon</p></div>`;
+    } else {
+      expiryEl.innerHTML = expiring.slice(0, 8).map(p => {
+        const d = new Date(p.expiry);
+        const daysLeft = Math.ceil((d - today) / 86400000);
+        const cls = daysLeft < 0 ? 'expiry-critical' : daysLeft <= 7 ? 'expiry-critical' : daysLeft <= 14 ? 'expiry-warn' : 'expiry-ok';
+        return `
+          <div class="revenue-row">
+            <span style="font-family:var(--font-body)">${p.image || '📦'} ${p.name}</span>
+            <span class="${cls}" style="font-family:var(--font-mono);font-size:12px">${daysLeft < 0 ? 'Expired' : daysLeft === 0 ? 'Today' : daysLeft + 'd left'}</span>
+          </div>`;
+      }).join('');
+    }
+  }
+
+  // ── INVENTORY: Stock Level Overview & Movement Log ──
+  const stockEl = document.getElementById('basicStockReport');
+  if (stockEl) {
+    const inStock  = inv.filter(p => !Inventory.isLowStock(p) && p.stock > 0).length;
+    const lowStock = inv.filter(p => Inventory.isLowStock(p) && p.stock > 0).length;
+    const outStock = inv.filter(p => p.stock === 0).length;
+    stockEl.innerHTML = `
+      <div class="revenue-row">
+        <span style="font-family:var(--font-body)">✅ In Stock</span>
+        <span style="font-family:var(--font-mono);color:var(--green);font-weight:700">${inStock} products</span>
+      </div>
+      <div class="revenue-row">
+        <span style="font-family:var(--font-body)">⚠️ Low Stock</span>
+        <span style="font-family:var(--font-mono);color:var(--yellow);font-weight:700">${lowStock} products</span>
+      </div>
+      <div class="revenue-row">
+        <span style="font-family:var(--font-body)">❌ Out of Stock</span>
+        <span style="font-family:var(--font-mono);color:var(--red);font-weight:700">${outStock} products</span>
+      </div>
+      <div class="revenue-row" style="border-top:2px solid var(--border);margin-top:4px;padding-top:10px">
+        <span style="font-family:var(--font-body);font-weight:600">Total Products</span>
+        <span style="font-family:var(--font-mono);font-weight:700">${inv.length}</span>
+      </div>`;
+  }
+
+  // ── CHECKOUT: Peak Hours ──
+  const peakEl = document.getElementById('basicPeakHours');
+  if (peakEl) {
+    const hourMap = {};
+    orders.forEach(o => {
+      const hr = o.date ? new Date(o.date).getHours() : null;
+      if (hr !== null) hourMap[hr] = (hourMap[hr] || 0) + 1;
+    });
+    const hourEntries = Object.entries(hourMap).sort((a,b) => b[1]-a[1]).slice(0,5);
+    const maxH = Math.max(...hourEntries.map(h=>h[1]), 1);
+    if (!hourEntries.length) {
+      peakEl.innerHTML = `<div class="empty-state"><div class="empty-icon">⏰</div><p>No order time data yet</p></div>`;
+    } else {
+      peakEl.innerHTML = hourEntries.map(([hr, cnt]) => {
+        const label = `${(+hr % 12 || 12)}:00 ${+hr < 12 ? 'AM' : 'PM'}`;
+        return `
+          <div class="revenue-row" style="align-items:center;gap:12px">
+            <span style="font-family:var(--font-mono);min-width:60px">${label}</span>
+            <div style="flex:1;height:10px;background:var(--surface-2);border-radius:5px;overflow:hidden">
+              <div style="height:100%;width:${Math.max(4,Math.round((cnt/maxH)*100))}%;background:var(--yellow);border-radius:5px"></div>
+            </div>
+            <span style="font-family:var(--font-mono);color:var(--text-3);min-width:60px;text-align:right">${cnt} orders</span>
+          </div>`;
+      }).join('');
+    }
+  }
+
+  // ── CHECKOUT: Recent Orders ──
+  const recentEl = document.getElementById('basicRecentOrders');
+  if (recentEl) {
+    const recent = [...orders].sort((a,b) => new Date(b.date||0) - new Date(a.date||0)).slice(0, 6);
+    if (!recent.length) {
+      recentEl.innerHTML = `<div class="empty-state"><div class="empty-icon">📋</div><p>No orders yet</p></div>`;
+    } else {
+      recentEl.innerHTML = recent.map(o => `
+        <div class="revenue-row">
+          <span class="recent-order-id">#${o.id || '—'}</span>
+          <span style="font-family:var(--font-body);font-size:12px;color:var(--text-3)">${o.customerName || 'Walk-in'}</span>
+          <span class="recent-order-amount">${formatPHP(o.total || 0)}</span>
+        </div>`).join('');
+    }
+  }
+}
+
+function _renderAdvancedReports(isPremium) {
+  const orders    = Orders.getAll();
+  const inv       = Inventory.getAll();
+  const customers = Customers.getAll();
+  const totalRev  = Orders.totalRevenue();
+  const todayRev  = Orders.todayRevenue();
+  const avgOrder  = orders.length ? (totalRev / orders.length) : 0;
+  const totalCust = customers.length;
+
+  // KPI stats row
+  const statsEl = document.getElementById('advReportStats');
+  if (statsEl) statsEl.innerHTML = `
+    ${devStatCard('💰', 'Total Revenue',     formatPHP(totalRev),  'green')}
+    ${devStatCard('📅', "Today's Sales",     formatPHP(todayRev),  'blue')}
+    ${devStatCard('📋', 'Total Orders',       orders.length,        'blue')}
+    ${devStatCard('🧾', 'Avg. Order Value',  formatPHP(avgOrder),  'green')}
+    ${devStatCard('👥', 'Total Customers',   totalCust,             'blue')}
+    ${devStatCard('⭐', 'Loyalty Points Out', customers.reduce((s,c)=>s+(c.points||0),0), 'yellow')}
+  `;
+
+  // Daily sales trend
+  const dailyEl = document.getElementById('advDailySales');
+  if (dailyEl) {
+    const days = _getLast7Days();
+    const max  = Math.max(...days.map(d => d.revenue), 1);
+    dailyEl.innerHTML = days.map(d => {
+      const pct = Math.max(4, Math.round((d.revenue / max) * 100));
+      return `
+        <div class="revenue-row" style="align-items:center;gap:12px">
+          <span style="font-family:var(--font-body);min-width:70px">${d.label}</span>
+          <div style="flex:1;height:10px;background:var(--surface-2);border-radius:5px;overflow:hidden">
+            <div style="height:100%;width:${pct}%;background:var(--blue);border-radius:5px;transition:width 0.5s"></div>
+          </div>
+          <span style="font-family:var(--font-mono);color:var(--green);min-width:80px;text-align:right">${formatPHP(d.revenue)}</span>
+        </div>`;
+    }).join('');
+  }
+
+  // Revenue by category
+  const catEl = document.getElementById('advCategoryRevenue');
+  if (catEl) {
+    const catMap = {};
+    orders.forEach(o => (o.items||[]).forEach(i => {
+      const prod = inv.find(p => p.id === i.id);
+      const cat  = prod?.category || 'Other';
+      catMap[cat] = (catMap[cat] || 0) + (i.price * i.qty);
+    }));
+    const cats   = Object.entries(catMap).sort((a,b) => b[1]-a[1]);
+    const maxCat = Math.max(...cats.map(c=>c[1]), 1);
+    catEl.innerHTML = cats.length ? cats.map(([cat, rev]) => `
+      <div class="revenue-row" style="align-items:center;gap:12px">
+        <span style="font-family:var(--font-body);min-width:100px;font-size:13px">${cat}</span>
+        <div style="flex:1;height:10px;background:var(--surface-2);border-radius:5px;overflow:hidden">
+          <div style="height:100%;width:${Math.max(4,Math.round((rev/maxCat)*100))}%;background:var(--green);border-radius:5px;transition:width 0.5s"></div>
+        </div>
+        <span style="font-family:var(--font-mono);color:var(--green);min-width:80px;text-align:right">${formatPHP(rev)}</span>
+      </div>`).join('') : `<div class="empty-state"><div class="empty-icon">🗂️</div><p>No sales data yet</p></div>`;
+  }
+
+  // Customer Lifetime Value
+  const clvEl = document.getElementById('advClvTable');
+  if (clvEl) {
+    const clvMap = {};
+    orders.forEach(o => {
+      const key = o.customerName || 'Walk-in';
+      if (!clvMap[key]) clvMap[key] = { name: key, orders: 0, total: 0, lastOrder: o.date || '—' };
+      clvMap[key].orders++;
+      clvMap[key].total += (o.total || 0);
+      if (o.date > clvMap[key].lastOrder) clvMap[key].lastOrder = o.date;
+    });
+    const clvList = Object.values(clvMap).sort((a,b) => b.total - a.total).slice(0, 8);
+    clvEl.innerHTML = clvList.length ? `
+      <table style="width:100%;font-size:13px">
+        <thead><tr style="color:var(--text-3);font-family:var(--font-body)">
+          <th style="text-align:left;padding:6px 0">Customer</th>
+          <th style="text-align:center">Orders</th>
+          <th style="text-align:right">Total Spend</th>
+          <th style="text-align:right">Avg/Order</th>
+        </tr></thead>
+        <tbody>${clvList.map((c, i) => `<tr style="border-top:1px solid var(--border)">
+          <td style="padding:7px 0;font-family:var(--font-body)">${['🥇','🥈','🥉'][i] || ''} ${c.name}</td>
+          <td style="text-align:center;font-family:var(--font-mono);color:var(--text-3)">${c.orders}</td>
+          <td style="text-align:right;font-family:var(--font-mono);color:var(--green);font-weight:700">${formatPHP(c.total)}</td>
+          <td style="text-align:right;font-family:var(--font-mono);color:var(--blue)">${formatPHP(c.orders ? c.total/c.orders : 0)}</td>
+        </tr>`).join('')}</tbody>
+      </table>` : `<div class="empty-state"><div class="empty-icon">💎</div><p>No customer data yet</p></div>`;
+  }
+
+  // Top products
+  const topEl = document.getElementById('advTopProducts');
+  if (topEl) {
+    const top = _getTopProducts(orders, 8);
+    topEl.innerHTML = top.length ? top.map((p, i) => `
+      <div class="revenue-row">
+        <span style="font-family:var(--font-body)">${['🥇','🥈','🥉','4️⃣','5️⃣','6️⃣','7️⃣','8️⃣'][i] || (i+1)+'.'} ${p.name}</span>
+        <span style="font-family:var(--font-mono);color:var(--text-3)">${p.qty} sold</span>
+        <span style="font-family:var(--font-mono);color:var(--green);font-weight:700">${formatPHP(p.revenue)}</span>
+      </div>`).join('') : `<div class="empty-state"><div class="empty-icon">🏷️</div><p>No sales yet</p></div>`;
+  }
+
+  // Peak hours
+  const hoursEl = document.getElementById('advPeakHours');
+  if (hoursEl) {
+    const hourMap = {};
+    orders.forEach(o => {
+      const hr = o.date ? new Date(o.date).getHours() : null;
+      if (hr !== null) hourMap[hr] = (hourMap[hr] || 0) + 1;
+    });
+    const hourEntries = Object.entries(hourMap).sort((a,b) => b[1]-a[1]).slice(0,6);
+    const maxH = Math.max(...hourEntries.map(h=>h[1]), 1);
+    hoursEl.innerHTML = hourEntries.length ? hourEntries.map(([hr, cnt]) => {
+      const label = `${(+hr % 12 || 12)}:00 ${+hr < 12 ? 'AM' : 'PM'}`;
+      return `
+        <div class="revenue-row" style="align-items:center;gap:12px">
+          <span style="font-family:var(--font-mono);min-width:60px">${label}</span>
+          <div style="flex:1;height:10px;background:var(--surface-2);border-radius:5px;overflow:hidden">
+            <div style="height:100%;width:${Math.max(4,Math.round((cnt/maxH)*100))}%;background:var(--yellow);border-radius:5px"></div>
+          </div>
+          <span style="font-family:var(--font-mono);color:var(--text-3);min-width:60px;text-align:right">${cnt} orders</span>
+        </div>`;
+    }).join('') : `<div class="empty-state"><div class="empty-icon">⏰</div><p>No order time data yet</p></div>`;
+  }
+
+  // Repeat vs new customers
+  const repeatEl = document.getElementById('advRepeatCustomers');
+  if (repeatEl) {
+    const custOrderCounts = {};
+    orders.forEach(o => {
+      const k = o.customerName || 'Walk-in';
+      custOrderCounts[k] = (custOrderCounts[k] || 0) + 1;
+    });
+    const repeat = Object.values(custOrderCounts).filter(c => c > 1).length;
+    const newC   = Object.values(custOrderCounts).filter(c => c === 1).length;
+    const total  = repeat + newC;
+    const repeatPct = total ? Math.round((repeat/total)*100) : 0;
+    repeatEl.innerHTML = `
+      <div class="revenue-row">
+        <span style="font-family:var(--font-body)">🔁 Repeat Customers</span>
+        <span style="font-family:var(--font-mono);color:var(--green);font-weight:700">${repeat} (${repeatPct}%)</span>
+      </div>
+      <div class="revenue-row">
+        <span style="font-family:var(--font-body)">🆕 New Customers</span>
+        <span style="font-family:var(--font-mono);color:var(--blue);font-weight:700">${newC} (${100-repeatPct}%)</span>
+      </div>
+      <div style="margin-top:14px">
+        <div style="height:12px;background:var(--surface-2);border-radius:6px;overflow:hidden;display:flex">
+          <div style="width:${repeatPct}%;background:var(--green);border-radius:6px 0 0 6px;transition:width 0.5s"></div>
+          <div style="flex:1;background:var(--blue-pale)"></div>
+        </div>
+        <div style="display:flex;justify-content:space-between;font-size:11px;font-family:var(--font-body);color:var(--text-3);margin-top:5px">
+          <span style="color:var(--green)">■ Repeat ${repeatPct}%</span>
+          <span style="color:var(--blue)">■ New ${100-repeatPct}%</span>
+        </div>
+      </div>`;
+  }
+
+  // ── Premium-only ──
+  if (isPremium) {
+    // Inventory Turnover Rate
+    const turnEl = document.getElementById('advInventoryTurnover');
+    if (turnEl) {
+      const soldMap = {};
+      orders.forEach(o => (o.items||[]).forEach(i => {
+        soldMap[i.id] = (soldMap[i.id] || 0) + (i.qty || 1);
+      }));
+      const turnoverItems = inv.map(p => ({
+        name: p.name, icon: p.image || '📦',
+        sold: soldMap[p.id] || 0,
+        stock: p.stock,
+        rate: p.stock > 0 ? ((soldMap[p.id] || 0) / p.stock).toFixed(2) : 'N/A'
+      })).sort((a,b) => (parseFloat(b.rate)||0) - (parseFloat(a.rate)||0)).slice(0,6);
+      turnEl.innerHTML = `
+        <table style="width:100%;font-size:13px">
+          <thead><tr style="color:var(--text-3);font-family:var(--font-body)">
+            <th style="text-align:left;padding:6px 0">Product</th>
+            <th style="text-align:center">Sold</th>
+            <th style="text-align:center">Stock</th>
+            <th style="text-align:right">Turnover</th>
+          </tr></thead>
+          <tbody>${turnoverItems.map(p => `<tr style="border-top:1px solid var(--border)">
+            <td style="padding:7px 0">${p.icon} ${p.name}</td>
+            <td style="text-align:center;font-family:var(--font-mono);color:var(--text-3)">${p.sold}</td>
+            <td style="text-align:center;font-family:var(--font-mono);color:var(--text-3)">${p.stock}</td>
+            <td style="text-align:right;font-family:var(--font-mono);color:${parseFloat(p.rate)>1?'var(--green)':parseFloat(p.rate)>0?'var(--yellow)':'var(--text-3)'};font-weight:700">${p.rate}×</td>
+          </tr>`).join('')}</tbody>
+        </table>`;
+    }
+
+    // Profit Margin per Product (simulated: margin = price × 0.35)
+    const profitEl = document.getElementById('advProfitMargin');
+    if (profitEl) {
+      const profitItems = [...inv].sort((a,b) => b.price - a.price).slice(0,6).map(p => ({
+        name: p.name, icon: p.image||'📦',
+        price: p.price,
+        estimatedCost: p.price * 0.65,
+        margin: p.price * 0.35,
+        marginPct: 35
+      }));
+      profitEl.innerHTML = `
+        <div style="font-size:11px;color:var(--text-3);font-family:var(--font-body);margin-bottom:10px">Based on estimated 35% gross margin</div>
+        <table style="width:100%;font-size:13px">
+          <thead><tr style="color:var(--text-3);font-family:var(--font-body)">
+            <th style="text-align:left;padding:6px 0">Product</th>
+            <th style="text-align:right">Price</th>
+            <th style="text-align:right">Margin</th>
+          </tr></thead>
+          <tbody>${profitItems.map(p => `<tr style="border-top:1px solid var(--border)">
+            <td style="padding:7px 0">${p.icon} ${p.name}</td>
+            <td style="text-align:right;font-family:var(--font-mono);color:var(--text-3)">${formatPHP(p.price)}</td>
+            <td style="text-align:right;font-family:var(--font-mono);color:var(--yellow);font-weight:700">${formatPHP(p.margin)} (${p.marginPct}%)</td>
+          </tr>`).join('')}</tbody>
+        </table>`;
+    }
+
+    // Multi-Store Comparison
+    const multiEl = document.getElementById('advMultiStore');
+    if (multiEl) {
+      const storeIds = ['grocery', 'toy', 'school'];
+      const storeNames = { grocery: 'JDC Grocery', toy: 'Toylandia', school: 'Hiraya Likhain' };
+      const storeStats = storeIds.map(sid => {
+        const sOrders = JSON.parse(localStorage.getItem(`sc_orders_${sid}`) || '[]');
+        return {
+          name: storeNames[sid] || sid,
+          orders: sOrders.length,
+          revenue: sOrders.reduce((s, o) => s + (o.total || 0), 0)
+        };
+      }).sort((a,b) => b.revenue - a.revenue);
+      const maxRev = Math.max(...storeStats.map(s => s.revenue), 1);
+      multiEl.innerHTML = storeStats.map((s, i) => `
+        <div class="revenue-row" style="align-items:center;gap:12px">
+          <span style="font-family:var(--font-body);min-width:90px;font-size:13px">${['🥇','🥈','🥉'][i] || ''} ${s.name}</span>
+          <div style="flex:1;height:10px;background:var(--surface-2);border-radius:5px;overflow:hidden">
+            <div style="height:100%;width:${Math.max(4,Math.round((s.revenue/maxRev)*100))}%;background:var(--blue);border-radius:5px;transition:width 0.5s"></div>
+          </div>
+          <span style="font-family:var(--font-mono);color:var(--green);min-width:80px;text-align:right">${formatPHP(s.revenue)}</span>
+        </div>`).join('');
+    }
+
+    // Customer Engagement
+    const engEl = document.getElementById('advCustomerEngagement');
+    if (engEl) {
+      const totalCustOrders = Object.keys((() => { const m = {}; orders.forEach(o => { m[o.customerName || 'Walk-in'] = 1; }); return m; })()).length;
+      const loyaltyPoints   = customers.reduce((s,c) => s + (c.points||0), 0);
+      const avgPointsPerCust = customers.length ? Math.round(loyaltyPoints / customers.length) : 0;
+      engEl.innerHTML = `
+        <div class="revenue-row">
+          <span style="font-family:var(--font-body)">👥 Unique Customers Served</span>
+          <span style="font-family:var(--font-mono);color:var(--blue);font-weight:700">${totalCustOrders}</span>
+        </div>
+        <div class="revenue-row">
+          <span style="font-family:var(--font-body)">⭐ Total Loyalty Points Issued</span>
+          <span style="font-family:var(--font-mono);color:var(--yellow);font-weight:700">${loyaltyPoints.toLocaleString()}</span>
+        </div>
+        <div class="revenue-row">
+          <span style="font-family:var(--font-body)">📊 Avg Points per Customer</span>
+          <span style="font-family:var(--font-mono);color:var(--green);font-weight:700">${avgPointsPerCust}</span>
+        </div>
+        <div class="revenue-row">
+          <span style="font-family:var(--font-body)">🛒 Avg Orders per Customer</span>
+          <span style="font-family:var(--font-mono);color:var(--blue);font-weight:700">${customers.length ? (orders.length / customers.length).toFixed(1) : '—'}</span>
+        </div>`;
+    }
+  }
+
+  // ── Loyalty & Rewards Engagement (Pro + Premium) ──
+  const loyaltyEl = document.getElementById('advLoyaltyEngagement');
+  if (loyaltyEl) {
+    const top = [...customers].sort((a,b) => (b.points||0) - (a.points||0)).slice(0, 6);
+    const totalPoints = customers.reduce((s,c) => s + (c.points||0), 0);
+    if (!top.length) {
+      loyaltyEl.innerHTML = `<div class="empty-state"><div class="empty-icon">⭐</div><p>No loyalty data yet</p></div>`;
+    } else {
+      loyaltyEl.innerHTML = `
+        <div style="font-size:12px;color:var(--text-3);font-family:var(--font-body);margin-bottom:10px">Total points issued: <strong style="color:var(--yellow)">${totalPoints.toLocaleString()} pts</strong></div>
+        ${top.map((c, i) => `
+          <div class="revenue-row">
+            <span style="font-family:var(--font-body)">${['🥇','🥈','🥉'][i] || ''} ${c.name}</span>
+            <span style="font-family:var(--font-mono);color:var(--yellow);font-weight:700">${(c.points||0).toLocaleString()} pts</span>
+          </div>`).join('')}`;
+    }
+  }
+
+  // ── New vs Returning Customers (Pro + Premium) ──
+  const newReturnEl = document.getElementById('advNewVsReturn');
+  if (newReturnEl) {
+    const custOrderCounts = {};
+    orders.forEach(o => {
+      const k = o.customerName || 'Walk-in';
+      custOrderCounts[k] = (custOrderCounts[k] || 0) + 1;
+    });
+    const repeat = Object.values(custOrderCounts).filter(c => c > 1).length;
+    const newC   = Object.values(custOrderCounts).filter(c => c === 1).length;
+    const total  = repeat + newC;
+    const repeatPct = total ? Math.round((repeat/total)*100) : 0;
+    newReturnEl.innerHTML = `
+      <div class="revenue-row">
+        <span style="font-family:var(--font-body)">🔁 Returning Customers</span>
+        <span style="font-family:var(--font-mono);color:var(--green);font-weight:700">${repeat} (${repeatPct}%)</span>
+      </div>
+      <div class="revenue-row">
+        <span style="font-family:var(--font-body)">🆕 New Customers</span>
+        <span style="font-family:var(--font-mono);color:var(--blue);font-weight:700">${newC} (${100-repeatPct}%)</span>
+      </div>
+      <div style="margin-top:14px">
+        <div style="height:12px;background:var(--surface-2);border-radius:6px;overflow:hidden;display:flex">
+          <div style="width:${repeatPct}%;background:var(--green);border-radius:6px 0 0 6px;transition:width 0.5s"></div>
+          <div style="flex:1;background:var(--blue-pale)"></div>
+        </div>
+        <div style="display:flex;justify-content:space-between;font-size:11px;font-family:var(--font-body);color:var(--text-3);margin-top:5px">
+          <span style="color:var(--green)">■ Returning ${repeatPct}%</span>
+          <span style="color:var(--blue)">■ New ${100-repeatPct}%</span>
+        </div>
+      </div>`;
+  }
+
+  // ── Basket Analysis (Pro + Premium) ──
+  const basketEl = document.getElementById('advBasketAnalysis');
+  if (basketEl) {
+    const avgItems = orders.length ? (orders.reduce((s,o) => s + ((o.items||[]).reduce((ss,i)=>ss+(i.qty||1),0)), 0) / orders.length).toFixed(1) : 0;
+    const avgVal   = orders.length ? (Orders.totalRevenue() / orders.length).toFixed(2) : 0;
+    // Find most common item pair
+    const pairMap  = {};
+    orders.forEach(o => {
+      const items = (o.items||[]).map(i => i.name || i.id);
+      for (let a = 0; a < items.length; a++) {
+        for (let b = a+1; b < items.length; b++) {
+          const key = [items[a], items[b]].sort().join(' + ');
+          pairMap[key] = (pairMap[key] || 0) + 1;
+        }
+      }
+    });
+    const topPair = Object.entries(pairMap).sort((a,b) => b[1]-a[1]).slice(0,3);
+    basketEl.innerHTML = `
+      <div class="revenue-row">
+        <span style="font-family:var(--font-body)">🛒 Avg Items per Basket</span>
+        <span style="font-family:var(--font-mono);color:var(--blue);font-weight:700">${avgItems} items</span>
+      </div>
+      <div class="revenue-row">
+        <span style="font-family:var(--font-body)">💰 Avg Basket Value</span>
+        <span style="font-family:var(--font-mono);color:var(--green);font-weight:700">${formatPHP(parseFloat(avgVal))}</span>
+      </div>
+      ${topPair.length ? `<div style="margin-top:12px;font-size:12px;font-family:var(--font-body);color:var(--text-3);margin-bottom:6px">🔗 Frequently Bought Together</div>
+        ${topPair.map(([pair, cnt]) => `
+          <div class="revenue-row">
+            <span style="font-family:var(--font-body);font-size:12px">${pair}</span>
+            <span style="font-family:var(--font-mono);color:var(--text-3);font-size:12px">${cnt}×</span>
+          </div>`).join('')}` : '<div style="font-size:12px;color:var(--text-3);font-family:var(--font-body);margin-top:10px">Not enough order data for pair analysis</div>'}`;
+  }
+
+  // ── Waste & Loss Report (Pro + Premium) ──
+  const wasteEl = document.getElementById('advWasteLoss');
+  if (wasteEl) {
+    const today = new Date();
+    const expired = inv.filter(p => p.expiry && new Date(p.expiry) < today);
+    const outOfStock = inv.filter(p => p.stock === 0);
+    const estimatedLoss = expired.reduce((s,p) => s + (p.price * Math.max(p.lowStockAt || 5, 1)), 0);
+    if (!expired.length && !outOfStock.length) {
+      wasteEl.innerHTML = `<div class="empty-state"><div class="empty-icon">✅</div><p>No waste or loss recorded</p></div>`;
+    } else {
+      wasteEl.innerHTML = `
+        <div class="revenue-row">
+          <span style="font-family:var(--font-body)">🗑️ Expired Products</span>
+          <span style="font-family:var(--font-mono);color:var(--red);font-weight:700">${expired.length} items</span>
+        </div>
+        <div class="revenue-row">
+          <span style="font-family:var(--font-body)">📭 Stockout Events</span>
+          <span style="font-family:var(--font-mono);color:var(--yellow);font-weight:700">${outOfStock.length} SKUs</span>
+        </div>
+        <div class="revenue-row">
+          <span style="font-family:var(--font-body)">💸 Est. Loss from Expiry</span>
+          <span style="font-family:var(--font-mono);color:var(--red);font-weight:700">${formatPHP(estimatedLoss)}</span>
+        </div>
+        ${expired.slice(0,4).map(p => `
+          <div class="revenue-row" style="padding:4px 0">
+            <span style="font-family:var(--font-body);font-size:12px">${p.image||'📦'} ${p.name}</span>
+            <span class="expiry-critical" style="font-family:var(--font-mono);font-size:11px">Expired ${p.expiry}</span>
+          </div>`).join('')}`;
+    }
+  }
+}
+
+function _getLast7Days() {
+  const orders = Orders.getAll();
+  const days = [];
+  for (let i = 6; i >= 0; i--) {
+    const d = new Date(); d.setDate(d.getDate() - i);
+    const key = d.toISOString().slice(0, 10);
+    const dayOrders = orders.filter(o => o.date && o.date.slice(0,10) === key);
+    days.push({
+      label: i === 0 ? 'Today' : i === 1 ? 'Yesterday' : d.toLocaleDateString('en-PH',{weekday:'short',month:'short',day:'numeric'}),
+      count: dayOrders.length,
+      revenue: dayOrders.reduce((s, o) => s + (o.total || 0), 0)
+    });
+  }
+  return days;
+}
+
+function _getTopProducts(orders, limit = 6) {
+  const map = {};
+  orders.forEach(o => (o.items || []).forEach(i => {
+    if (!map[i.name]) map[i.name] = { name: i.name, qty: 0, revenue: 0 };
+    map[i.name].qty     += (i.qty || 1);
+    map[i.name].revenue += (i.price * i.qty);
+  }));
+  return Object.values(map).sort((a,b) => b.revenue - a.revenue).slice(0, limit);
+}
+
 /* ============================================================
    ██████╗ █████╗ ███████╗██╗  ██╗██╗███████╗██████╗
   ██╔════╝██╔══██╗██╔════╝██║  ██║██║██╔════╝██╔══██╗
@@ -885,17 +1618,104 @@ async function startCheckoutScanner() {
 }
 
 async function stopCheckoutScanner() {
+  // If a weight-blocked transaction is pending, log it as abandoned
+  if (window._pendingCheckoutData && window._pendingCheckoutData._weightBlocked) {
+    const abandoned = window._pendingCheckoutData;
+    Orders.add({
+      customerId:   abandoned.customerId,
+      customerName: abandoned.customerName || 'Walk-in',
+      listName:     abandoned.listName,
+      items:        abandoned.items,
+      subtotal:     abandoned.subtotal,
+      discount:     abandoned.discount || 0,
+      tax:          abandoned.tax,
+      total:        abandoned.total,
+      status:       'abandoned_weight_fail',
+      weightCheck: {
+        expectedGrams: abandoned.expectedWeight,
+        actualGrams:   abandoned.lastWeighedGrams || null,
+        result:        'abandoned',
+        reweighCount:  abandoned.reweighCount || 0,
+        timestamp:     new Date().toISOString(),
+        cashier:       AuthState.currentUser?.name || sessionStorage.getItem('sc_cashier_name') || 'Cashier',
+      }
+    });
+    window._pendingCheckoutData = null;
+    toast('Abandoned transaction logged ⚠️', 'warning');
+  }
   await Scanner.stop();
   const statusEl = document.getElementById('checkoutScanStatus');
   if (statusEl) statusEl.textContent = '📷 Camera inactive';
 }
 
 function manualQREntry() {
+  // Kept as fallback for raw JSON paste (advanced use)
   const raw = prompt('Paste QR data or JSON order payload:');
   if (raw && raw.trim()) handleCheckoutQR(raw.trim());
 }
 
+/* ── Text-code lookup (cashier side) ── */
+function loadOrderByTextCode() {
+  const input = document.getElementById('checkoutTextCodeInput');
+  if (!input) return;
+  const code = input.value.trim().toUpperCase();
+  if (!code) { toast('Enter a code first', 'warning'); return; }
+
+  const TEXT_CODE_STORE_KEY = 'sc_text_codes';
+  let store;
+  try { store = JSON.parse(localStorage.getItem(TEXT_CODE_STORE_KEY) || '{}'); }
+  catch(e) { store = {}; }
+
+  const payload = store[code];
+  if (!payload) {
+    toast(`Code "${code}" not found or expired`, 'error');
+    const inp = document.getElementById('checkoutTextCodeInput');
+    if (inp) { inp.classList.add('input-error'); setTimeout(() => inp.classList.remove('input-error'), 1500); }
+    return;
+  }
+
+  // Check age — codes expire after 2 hours
+  if (payload.ts && Date.now() - payload.ts > 2 * 60 * 60 * 1000) {
+    toast(`Code "${code}" has expired`, 'error');
+    return;
+  }
+
+  // Consume the code (single-use)
+  delete store[code];
+  localStorage.setItem(TEXT_CODE_STORE_KEY, JSON.stringify(store));
+
+  input.value = '';
+  toast(`Order loaded via code "${code}" ✅`, 'success');
+  handleCheckoutQR(JSON.stringify(payload));
+}
+
 function handleCheckoutQR(raw) {
+  // If a weight-blocked transaction is pending, log it as abandoned first
+  if (window._pendingCheckoutData && window._pendingCheckoutData._weightBlocked) {
+    const abandoned = window._pendingCheckoutData;
+    Orders.add({
+      customerId:   abandoned.customerId,
+      customerName: abandoned.customerName || 'Walk-in',
+      listName:     abandoned.listName,
+      items:        abandoned.items,
+      subtotal:     abandoned.subtotal,
+      discount:     abandoned.discount || 0,
+      tax:          abandoned.tax,
+      total:        abandoned.total,
+      status:       'abandoned_weight_fail',
+      weightCheck: {
+        expectedGrams: abandoned.expectedWeight,
+        actualGrams:   abandoned.lastWeighedGrams || null,
+        result:        'abandoned',
+        reweighCount:  abandoned.reweighCount || 0,
+        timestamp:     new Date().toISOString(),
+        cashier:       AuthState.currentUser?.name || sessionStorage.getItem('sc_cashier_name') || 'Cashier',
+      }
+    });
+    window._pendingCheckoutData = null;
+    toast('Previous blocked transaction logged as abandoned', 'warning');
+  }
+
   let data;
   try {
     data = typeof raw === 'string' ? JSON.parse(raw) : raw;
@@ -917,6 +1737,24 @@ function renderCheckoutOrder(data) {
   const items  = data.items;
   const totals = calcTotals(items, data.discount || 0);
   const el     = document.getElementById('checkoutOrderContent');
+
+  // ── Compute expected weight from live inventory ──
+  let expectedWeight = 0;
+  items.forEach(i => {
+    const product = Inventory.findById(i.id);
+    expectedWeight += (product?.weightGrams || 0) * i.qty;
+  });
+  data.expectedWeight  = expectedWeight;
+  data.tolerancePct    = 0.10;
+  data.reweighCount    = data.reweighCount || 0;
+  data.lastWeighedGrams = data.lastWeighedGrams || null;
+  data._weightBlocked  = true; // mark as pending until weight passes
+
+  // Store reference globally so abandoned-log can access it
+  window._pendingCheckoutData = data;
+
+  const lowerBound = Math.round(expectedWeight * (1 - data.tolerancePct));
+  const upperBound = Math.round(expectedWeight * (1 + data.tolerancePct));
 
   const itemsHtml = items.map(i => {
     const product = Inventory.findById(i.id);
@@ -940,10 +1778,127 @@ function renderCheckoutOrder(data) {
       <div class="totals-row"><span>VAT (12%)</span><span>${formatPHP(totals.tax)}</span></div>
       <div class="totals-row total"><span>TOTAL</span><span>${formatPHP(totals.total)}</span></div>
     </div>
-    <button class="btn btn-success btn-lg w-full" style="margin-top:20px"
-      onclick='completeCheckout(${JSON.stringify(data).replace(/'/g,"&#39;")})'>
+
+    <div id="weightBannerArea"></div>
+
+    <div class="scale-sim-panel" id="scaleSimPanel">
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px;flex-wrap:wrap">
+        <span style="font-size:1.1rem">⚖️</span>
+        <strong style="font-family:var(--font-subhead);font-size:0.95rem">Scale Simulator</strong>
+        <span class="scale-demo-badge">DEMO MODE</span>
+      </div>
+      <div style="font-family:var(--font-mono);font-size:13px;color:var(--text-2);margin-bottom:14px">
+        Expected: <strong>${expectedWeight.toLocaleString()}g</strong>
+        <span style="color:var(--text-3);margin-left:6px">(±10%: ${lowerBound.toLocaleString()}g – ${upperBound.toLocaleString()}g)</span>
+      </div>
+      <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:12px">
+        <input
+          type="number"
+          id="simWeightInput"
+          class="form-input"
+          value="${expectedWeight}"
+          min="0"
+          placeholder="grams"
+          style="width:130px;font-family:var(--font-mono)"
+          onkeydown="if(event.key==='Enter')runWeightCheck(window._pendingCheckoutData,+document.getElementById('simWeightInput').value)"
+        />
+        <span style="font-family:var(--font-mono);font-size:13px;color:var(--text-3)">g</span>
+        <button class="btn btn-primary btn-sm" onclick="runWeightCheck(window._pendingCheckoutData,+document.getElementById('simWeightInput').value)">
+          Weigh ▶
+        </button>
+      </div>
+      <label style="display:flex;align-items:center;gap:8px;font-family:var(--font-body);font-size:13px;cursor:pointer;color:var(--text-2)">
+        <input type="checkbox" id="simDisconnected"
+          onchange="document.getElementById('scaleStatusBadge')&&(document.getElementById('scaleStatusBadge').textContent=this.checked?'⚖️ Scale Offline':'⚖️ Scale Simulated',document.getElementById('scaleStatusBadge').className='scale-status-badge'+(this.checked?' offline':''))" />
+        Simulate scale disconnected
+      </label>
+    </div>
+
+    <div id="completeCheckoutArea"></div>`;
+
+  // Update scale badge to default state
+  const badge = document.getElementById('scaleStatusBadge');
+  if (badge) { badge.textContent = '⚖️ Scale Simulated'; badge.className = 'scale-status-badge'; }
+}
+
+function runWeightCheck(data, simulatedGrams) {
+  const bannerArea  = document.getElementById('weightBannerArea');
+  const simPanel    = document.getElementById('scaleSimPanel');
+  const completeArea = document.getElementById('completeCheckoutArea');
+  const badge       = document.getElementById('scaleStatusBadge');
+  if (!bannerArea || !simPanel || !completeArea) return;
+
+  const isDisconnected = document.getElementById('simDisconnected')?.checked;
+
+  data.lastWeighedGrams = isDisconnected ? null : simulatedGrams;
+
+  // Track reweigh count (only increment after first attempt)
+  if (data._hasWeighed) data.reweighCount = (data.reweighCount || 0) + 1;
+  data._hasWeighed = true;
+
+  const expected   = data.expectedWeight;
+  const lowerBound = expected * (1 - data.tolerancePct);
+  const upperBound = expected * (1 + data.tolerancePct);
+
+  // Clear previous state
+  bannerArea.innerHTML  = '';
+  completeArea.innerHTML = '';
+
+  if (isDisconnected) {
+    bannerArea.innerHTML = `<div class="weight-banner fail">
+      ⚖️ Scale not responding — cannot verify basket weight. Reconnect the scale to proceed.
+    </div>`;
+    completeArea.innerHTML = reweighBtn(data);
+    simPanel.classList.add('hidden');
+    if (badge) { badge.textContent = '⚖️ Scale Offline'; badge.className = 'scale-status-badge offline'; }
+    data._weightBlocked = true;
+    return;
+  }
+
+  if (simulatedGrams >= lowerBound && simulatedGrams <= upperBound) {
+    // PASS
+    const result = data.reweighCount > 0 ? 'passed_after_reweigh' : 'passed';
+    data._weightResult  = result;
+    data._weightBlocked = false;
+    window._pendingCheckoutData = null; // no longer blocked
+
+    bannerArea.innerHTML = `<div class="weight-banner pass">
+      ✅ Weight verified — basket matches the cart.
+    </div>`;
+    simPanel.classList.add('hidden');
+    completeArea.innerHTML = `<button class="btn btn-success btn-lg w-full" style="margin-top:20px"
+      onclick='completeCheckout(window._lastVerifiedData)'>
       ✅ Complete Checkout
     </button>`;
+    window._lastVerifiedData = data;
+    if (badge) { badge.textContent = '⚖️ Verified'; badge.className = 'scale-status-badge verified'; }
+    setTimeout(() => {
+      if (badge) { badge.textContent = '⚖️ Scale Simulated'; badge.className = 'scale-status-badge'; }
+    }, 4000);
+  } else if (simulatedGrams > upperBound) {
+    bannerArea.innerHTML = `<div class="weight-banner fail">
+      ⚠️ Weight mismatch — basket is heavier than the cart. Transaction cannot proceed. Please resolve before continuing.
+    </div>`;
+    completeArea.innerHTML = reweighBtn(data);
+    simPanel.classList.add('hidden');
+    if (badge) { badge.textContent = '⚖️ Scale Simulated'; badge.className = 'scale-status-badge'; }
+    data._weightBlocked = true;
+  } else {
+    bannerArea.innerHTML = `<div class="weight-banner fail">
+      ⚠️ Weight mismatch — basket is lighter than the cart. Items may be missing. Transaction cannot proceed.
+    </div>`;
+    completeArea.innerHTML = reweighBtn(data);
+    simPanel.classList.add('hidden');
+    if (badge) { badge.textContent = '⚖️ Scale Simulated'; badge.className = 'scale-status-badge'; }
+    data._weightBlocked = true;
+  }
+}
+
+function reweighBtn(data) {
+  return `<button class="btn btn-ghost w-full" style="margin-top:12px"
+    onclick="document.getElementById('scaleSimPanel').classList.remove('hidden');document.getElementById('weightBannerArea').innerHTML='';document.getElementById('completeCheckoutArea').innerHTML='';window._pendingCheckoutData=window._pendingCheckoutData||${JSON.stringify({}).replace(/</g,'\\u003c')}">
+    🔄 Re-weigh
+  </button>`;
 }
 
 function completeCheckout(data) {
@@ -960,7 +1915,16 @@ function completeCheckout(data) {
     discount:     data.discount || 0,
     tax:          data.tax,
     total:        data.total,
-    status:       'completed'
+    status:       'completed',
+    cashier:      AuthState.currentUser?.name || sessionStorage.getItem('sc_cashier_name') || 'Cashier',
+    weightCheck: {
+      expectedGrams: data.expectedWeight,
+      actualGrams:   data.lastWeighedGrams,
+      result:        data._weightResult || 'passed',
+      reweighCount:  data.reweighCount || 0,
+      timestamp:     new Date().toISOString(),
+      cashier:       AuthState.currentUser?.name || sessionStorage.getItem('sc_cashier_name') || 'Cashier',
+    }
   });
 
   // Update customer points & order count

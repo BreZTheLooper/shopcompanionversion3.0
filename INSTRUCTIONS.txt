@@ -1,0 +1,97 @@
+# Shop Companion 3.0 — Supabase Integration Files
+
+## Files in this folder
+- supabase.js  — Supabase client + all DB helpers
+- shared.js    — Updated data layer (Inventory, Orders, Retailers, Customers now sync to Supabase)
+
+---
+
+## Step 1 — Add these 2 lines to index.html <head>
+
+Find this line in your index.html:
+  <link rel="stylesheet" href="styles.css" />
+
+Add ABOVE your existing <script> tags, right after the CSS links:
+
+  <!-- Supabase -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="supabase.js"></script>
+
+Your final script order in <head> should be:
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="supabase.js"></script>
+  <script src="shared.js"></script>
+  <script src="auth.js"></script>
+  <script src="admin.js"></script>
+  <script src="customer.js"></script>
+
+---
+
+## Step 2 — Run SQL in Supabase (do this ONCE)
+
+Go to Supabase → SQL Editor → New query, paste and run:
+
+create table retailers (
+  id text primary key, client_name text, store_name text,
+  email text unique, phone text, location text, plan text,
+  access_code text, subscription_start date, subscription_end date,
+  status text default 'active', monthly_revenue jsonb default '[]'
+);
+
+create table inventory (
+  id text primary key, store_id text not null, name text,
+  barcode text, category text, type text, price numeric,
+  stock integer default 0, unit text, image text, expiry date,
+  low_stock_at integer default 10, weight_grams numeric
+);
+
+create table cashiers (
+  id text primary key, store_id text, store_slug text,
+  store_name text, client_email text, name text, username text,
+  login_email text unique, password text,
+  role text default 'cashier', status text default 'active',
+  added date default now()
+);
+
+create table customers (
+  id text primary key, name text, email text unique,
+  password text, phone text, joined date default now(),
+  last_login timestamptz, total_orders integer default 0,
+  points integer default 0
+);
+
+create table orders (
+  id text primary key, store_id text, cashier_email text,
+  cashier_name text, customer_id text, customer_name text,
+  items jsonb, subtotal numeric, discount numeric default 0,
+  tax numeric default 0, total numeric,
+  status text default 'completed', weight_check jsonb,
+  created_at timestamptz default now()
+);
+
+-- Disable RLS so your app can read/write freely
+alter table retailers  disable row level security;
+alter table inventory  disable row level security;
+alter table cashiers   disable row level security;
+alter table customers  disable row level security;
+alter table orders     disable row level security;
+
+---
+
+## Step 3 — Seed your data (do this ONCE after SQL)
+
+1. Open your site in the browser
+2. Open DevTools → Console (F12)
+3. Type: seedSupabase()
+4. Press Enter and wait ~10 seconds
+5. Check Supabase Table Editor — you should see rows!
+
+---
+
+## What now syncs to Supabase automatically
+- Adding / editing / deleting products → inventory table
+- Stock deductions at checkout → inventory.stock
+- Every completed order → orders table
+- Adding / editing retailers (Developer panel) → retailers table
+- Customer points updates → customers table
+- Adding / editing cashiers → cashiers table
