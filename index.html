@@ -1407,13 +1407,7 @@
   }
 </script>
 
-<!-- Supabase -->
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script src="supabase.js"></script>
-<script src="shared.js"></script>
-<script src="auth.js"></script>
-<script src="admin.js"></script>
-<script src="customer.js"></script>
+<!-- NOTE: scripts moved to end of body for correct load order -->
 
 <!-- Shop Companion 3.0 Extensions — FIXED v3.1 -->
 <script>
@@ -2038,6 +2032,14 @@ document.addEventListener('DOMContentLoaded', () => {
   }, 300);
 });
 </script>
+
+<!-- Supabase + App scripts — loaded LAST so all inline JS has the DOM ready -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="supabase.js"></script>
+<script src="shared.js"></script>
+<script src="auth.js"></script>
+<script src="admin.js"></script>
+<script src="customer.js"></script>
 
 </body>
 </html>

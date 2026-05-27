@@ -91,19 +91,23 @@ migrateWeightGrams();
    INVENTORY HELPERS — reads from localStorage cache,
    writes to BOTH localStorage and Supabase
    ============================================================ */
+/* Standalone helper — avoids 'this' context loss when Inventory methods
+   are called as detached references (e.g. Object.getAll) from admin.js */
+function _getStoreId() {
+  try { return JSON.parse(sessionStorage.getItem('sc_auth') || '{}')?.user?.storeId || null; } catch { return null; }
+}
+
 const Inventory = {
-  _storeId() {
-    try { return JSON.parse(sessionStorage.getItem('sc_auth') || '{}')?.user?.storeId || null; } catch { return null; }
-  },
+  _storeId() { return _getStoreId(); },
 
   getAll() {
-    const sid = this._storeId();
+    const sid = _getStoreId();
     if (sid) return Store.get('inventory_' + sid) || Store.get('inventory') || [];
     return Store.get('inventory') || [];
   },
 
   save(inv) {
-    const sid = this._storeId();
+    const sid = _getStoreId();
     if (sid) Store.set('inventory_' + sid, inv);
     Store.set('inventory', inv);
   },
@@ -122,7 +126,7 @@ const Inventory = {
     inv.push(product);
     this.save(inv);
     /* Sync to Supabase */
-    const sid = this._storeId();
+    const sid = _getStoreId();
     if (sid && typeof DB !== 'undefined') {
       DB.upsertProduct(sid, product).catch(e => console.warn('[Inventory.add]', e));
     }
@@ -133,7 +137,7 @@ const Inventory = {
     const inv = this.getAll().map(p => p.id === id ? { ...p, ...changes } : p);
     this.save(inv);
     /* Sync to Supabase */
-    const sid = this._storeId();
+    const sid = _getStoreId();
     const updated = inv.find(p => p.id === id);
     if (sid && updated && typeof DB !== 'undefined') {
       DB.upsertProduct(sid, updated).catch(e => console.warn('[Inventory.update]', e));

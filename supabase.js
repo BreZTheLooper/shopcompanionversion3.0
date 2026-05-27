@@ -8,7 +8,11 @@
 const SUPABASE_URL  = 'https://xuywopabnmwvfxswaqkc.supabase.co';
 const SUPABASE_ANON = 'sb_publishable_tJmUDAl_h4uJyqOgXWRuVA_TtolibM8';
 
-const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON);
+/* Guard against browser-extension re-declaration of 'supabase' in the same scope */
+if (typeof window._sc_supabase === 'undefined') {
+  window._sc_supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON);
+}
+const supabase = window._sc_supabase;
 
 /* ============================================================
    DB — All Supabase operations for Shop Companion
