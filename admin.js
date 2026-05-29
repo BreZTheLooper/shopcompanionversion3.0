@@ -1667,26 +1667,58 @@ function loadOrderByTextCode() {
   catch(e) { store = {}; }
 
   const payload = store[code];
-  if (!payload) {
+
+  if (payload) {
+    // Found in localStorage (same-device use)
+    if (payload.ts && Date.now() - payload.ts > 2 * 60 * 60 * 1000) {
+      toast(`Code "${code}" has expired`, 'error');
+      return;
+    }
+    // Consume (single-use)
+    delete store[code];
+    localStorage.setItem(TEXT_CODE_STORE_KEY, JSON.stringify(store));
+    input.value = '';
+    toast(`Order loaded via code "${code}" ✅`, 'success');
+    handleCheckoutQR(JSON.stringify(payload));
+    return;
+  }
+
+  // Not in localStorage — try Supabase (cross-device: customer on phone, cashier on PC)
+  if (typeof window._sc_supabase !== 'undefined') {
+    toast('Looking up code…', 'info');
+    window._sc_supabase
+      .from('cart_codes')
+      .select('*')
+      .eq('code', code)
+      .single()
+      .then(({ data, error }) => {
+        if (error || !data) {
+          toast(`Code "${code}" not found or expired`, 'error');
+          const inp = document.getElementById('checkoutTextCodeInput');
+          if (inp) { inp.classList.add('input-error'); setTimeout(() => inp.classList.remove('input-error'), 1500); }
+          return;
+        }
+        const p = data.payload;
+        if (p.ts && Date.now() - p.ts > 2 * 60 * 60 * 1000) {
+          toast(`Code "${code}" has expired`, 'error');
+          // Clean up expired row
+          window._sc_supabase.from('cart_codes').delete().eq('code', code).then(() => {});
+          return;
+        }
+        // Consume from Supabase (single-use)
+        window._sc_supabase.from('cart_codes').delete().eq('code', code).then(() => {});
+        input.value = '';
+        toast(`Order loaded via code "${code}" ✅`, 'success');
+        handleCheckoutQR(JSON.stringify(p));
+      })
+      .catch(() => {
+        toast(`Code "${code}" not found or expired`, 'error');
+      });
+  } else {
     toast(`Code "${code}" not found or expired`, 'error');
     const inp = document.getElementById('checkoutTextCodeInput');
     if (inp) { inp.classList.add('input-error'); setTimeout(() => inp.classList.remove('input-error'), 1500); }
-    return;
   }
-
-  // Check age — codes expire after 2 hours
-  if (payload.ts && Date.now() - payload.ts > 2 * 60 * 60 * 1000) {
-    toast(`Code "${code}" has expired`, 'error');
-    return;
-  }
-
-  // Consume the code (single-use)
-  delete store[code];
-  localStorage.setItem(TEXT_CODE_STORE_KEY, JSON.stringify(store));
-
-  input.value = '';
-  toast(`Order loaded via code "${code}" ✅`, 'success');
-  handleCheckoutQR(JSON.stringify(payload));
 }
 
 function handleCheckoutQR(raw) {

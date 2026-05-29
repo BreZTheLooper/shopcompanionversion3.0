@@ -203,27 +203,10 @@ function registerCustomer() {
 const shopQtyMap = {}; // qty selected per product card (before adding to cart)
 
 function renderShop(data) {
-  // If no data passed in, fetch live inventory from Supabase for the selected store
-  if (!data && typeof DB !== 'undefined') {
-    const storeId = sessionStorage.getItem('sc_selected_store') || 'grocery';
-    DB.getInventory(storeId).then(freshInv => {
-      if (freshInv && freshInv.length) {
-        // Cache into both per-store and generic keys so Inventory.getAll() stays in sync
-        Store.set('inventory_' + storeId, freshInv);
-        Store.set('inventory', freshInv);
-        renderShop(freshInv);
-      }
-    }).catch(() => {}); // silently fall through to localStorage cache on error
-  }
-
-  const storeId = sessionStorage.getItem('sc_selected_store') || 'grocery';
-  const inv = data
-    || Store.get('inventory_' + storeId)
-    || Store.get('inventory')
-    || [];
+  const inv  = data || Inventory.getAll();
 
   // Category pills
-  const cats = ['All', ...new Set(inv.map(p => p.category).filter(Boolean))].sort();
+  const cats = ['All', ...Inventory.categories()];
   const pillEl = document.getElementById('categoryPills');
   if (pillEl) {
     pillEl.innerHTML = cats.map(c => `
@@ -236,9 +219,8 @@ function renderShop(data) {
   const catSel = document.getElementById('shopCategory');
   if (catSel) {
     const cur = catSel.value;
-    const allCats = [...new Set(inv.map(p => p.category).filter(Boolean))].sort();
     catSel.innerHTML = '<option value="">All Categories</option>' +
-      allCats.map(c => `<option value="${c}" ${c===cur?'selected':''}>${c}</option>`).join('');
+      Inventory.categories().map(c => `<option value="${c}" ${c===cur?'selected':''}>${c}</option>`).join('');
   }
 
   // Product cards
@@ -272,7 +254,7 @@ function renderShop(data) {
           ${expiryBadge}
           <div class="product-meta" style="margin-top:4px">
             ${p.stock > 0 ? `<span style="color:var(--green)">✔ ${p.stock} in stock</span>` : '<span style="color:var(--red)">Out of stock</span>'}
-            ${(p.stock > 0 && p.stock <= (p.lowStockAt || 10)) ? `<span style="color:var(--yellow);margin-left:6px">⚠ Low</span>` : ''}
+            ${Inventory.isLowStock(p) && p.stock > 0 ? `<span style="color:var(--yellow);margin-left:6px">⚠ Low</span>` : ''}
           </div>
         </div>
         <div class="product-price">${formatPHP(p.price)}</div>
@@ -297,10 +279,7 @@ function filterShop() {
 
   activeCategoryFilter = cat;
 
-  const _sid = sessionStorage.getItem('sc_selected_store') || 'grocery';
-  const _inv = Store.get('inventory_' + _sid) || Store.get('inventory') || [];
-
-  let items = _inv.filter(p =>
+  let items = Inventory.getAll().filter(p =>
     (!query || p.name.toLowerCase().includes(query) || (p.barcode||'').includes(query) || (p.type||'').toLowerCase().includes(query)) &&
     (!cat   || p.category === cat)
   );
@@ -348,7 +327,9 @@ function stopShopScanner() {
 }
 
 function handleShopBarcode(code) {
-  const product = Inventory.findByBarcode(code);
+  const _sid = sessionStorage.getItem('sc_selected_store') || 'grocery';
+  const _inv = Store.get('inventory_' + _sid) || Store.get('inventory') || [];
+  const product = _inv.find(p => p.barcode === code);
   const resultEl = document.getElementById('shopScanResult');
   if (product) {
     addProductToCart(product, 1);
@@ -376,7 +357,11 @@ function handleShopBarcodeManual(code) {
    CART
    ============================================================ */
 function addToCart(productId) {
-  const product = Inventory.findById(productId);
+  // Look up from the correct store cache (customer has no sc_auth session,
+  // so Inventory.findById falls back to wrong key — use Store directly)
+  const storeId = sessionStorage.getItem('sc_selected_store') || 'grocery';
+  const inv = Store.get('inventory_' + storeId) || Store.get('inventory') || [];
+  const product = inv.find(p => p.id === productId);
   if (!product) return;
   const qty = shopQtyMap[productId] || 1;
   addProductToCart(product, qty);
@@ -612,7 +597,9 @@ let _addToListProductId = null;
 
 function openAddToListModal(productId) {
   _addToListProductId = productId;
-  const product = Inventory.findById(productId);
+  const _sid = sessionStorage.getItem('sc_selected_store') || 'grocery';
+  const _inv = Store.get('inventory_' + _sid) || Store.get('inventory') || [];
+  const product = _inv.find(p => p.id === productId);
   const nameEl  = document.getElementById('addToListProductName');
   if (nameEl) nameEl.textContent = `Adding: ${product?.name}`;
 
@@ -636,7 +623,9 @@ function openAddToListModal(productId) {
 
 function addProductToList(listIdx) {
   if (!_addToListProductId) return;
-  const product = Inventory.findById(_addToListProductId);
+  const _sid = sessionStorage.getItem('sc_selected_store') || 'grocery';
+  const _inv = Store.get('inventory_' + _sid) || Store.get('inventory') || [];
+  const product = _inv.find(p => p.id === _addToListProductId);
   if (!product) return;
 
   const lists    = getLists();
@@ -736,16 +725,26 @@ function renderQRCode() {
 const TEXT_CODE_STORE_KEY = 'sc_text_codes';
 
 function generateCartTextCode(payload) {
-  // Produce a 6-character alphanumeric code, store payload against it
+  // Produce a 6-character alphanumeric code
   const code = Math.random().toString(36).slice(2, 8).toUpperCase();
-  const store = JSON.parse(localStorage.getItem(TEXT_CODE_STORE_KEY) || '{}');
+  const entry = { ...payload, ts: Date.now() };
 
-  // Purge codes older than 2 hours to keep storage lean
+  // Always save to localStorage (same-device fallback)
+  const store = JSON.parse(localStorage.getItem(TEXT_CODE_STORE_KEY) || '{}');
   const cutoff = Date.now() - 2 * 60 * 60 * 1000;
   Object.keys(store).forEach(k => { if ((store[k].ts || 0) < cutoff) delete store[k]; });
-
-  store[code] = { ...payload, ts: Date.now() };
+  store[code] = entry;
   localStorage.setItem(TEXT_CODE_STORE_KEY, JSON.stringify(store));
+
+  // Also save to Supabase so a cashier on a different device can look it up
+  if (typeof window._sc_supabase !== 'undefined') {
+    window._sc_supabase
+      .from('cart_codes')
+      .upsert({ code, payload: entry, created_at: new Date().toISOString() }, { onConflict: 'code' })
+      .then(({ error }) => { if (error) console.warn('[cart_codes] upsert failed:', error.message); })
+      .catch(() => {});
+  }
+
   return code;
 }
 
