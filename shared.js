@@ -256,8 +256,13 @@ const Customers = {
    ORDERS HELPERS — saves to localStorage + Supabase
    ============================================================ */
 const Orders = {
-  getAll()  { return Store.get('orders') || []; },
-  save(o)   { Store.set('orders', o); },
+  _storeKey() {
+    const sid = _getStoreId();
+    return sid ? 'orders_' + sid : 'orders';
+  },
+
+  getAll()  { return Store.get(this._storeKey()) || []; },
+  save(o)   { Store.set(this._storeKey(), o); },
 
   add(order) {
     const list = this.getAll();
@@ -267,7 +272,7 @@ const Orders = {
     this.save(list);
     /* Sync to Supabase */
     try {
-      const storeId = JSON.parse(sessionStorage.getItem('sc_auth') || '{}')?.user?.storeId;
+      const storeId = _getStoreId();
       if (storeId && typeof DB !== 'undefined') {
         DB.saveOrder(storeId, order).catch(e => console.warn('[Orders.add]', e));
       }

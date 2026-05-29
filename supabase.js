@@ -473,11 +473,10 @@ async function seedSupabase() {
   /* 5. Orders (all 3 stores) */
   let orderTotal = 0;
   for (const storeId of ['grocery', 'toy', 'school']) {
-    /* try both key patterns used across the codebase */
-    const storeOrders = JSON.parse(localStorage.getItem(`sc_orders_${storeId}`) || 'null')
-                     || (storeId === (sessionStorage.getItem('sc_selected_store') || 'grocery')
-                         ? JSON.parse(localStorage.getItem('sc_orders') || '[]')
-                         : []);
+    /* Only read the scoped key — sc_orders_<storeId>.
+       The old unscoped 'sc_orders' key is intentionally skipped here.
+       If you still have data there, run migrateOrdersToScopedKeys() first. */
+    const storeOrders = JSON.parse(localStorage.getItem(`sc_orders_${storeId}`) || '[]');
     for (const o of storeOrders) {
       await _sb.from('orders').upsert({
         id:            o.id,
@@ -520,8 +519,84 @@ async function seedSupabase() {
   console.log('[Seed] ✅ All done!');
 }
 
+
+/* ============================================================
+   ONE-TIME MIGRATION — run once in console if you had orders
+   in the old unscoped 'sc_orders' localStorage key before
+   the per-store scoping fix.
+
+   Usage: migrateOrdersToScopedKeys()
+   ============================================================ */
+async function migrateOrdersToScopedKeys() {
+  const STORES      = ['grocery', 'toy', 'school'];
+  const PREFIX_MAP  = { JG: 'grocery', TL: 'toy', HL: 'school' };
+
+  /* 1 — Pull old unscoped localStorage orders */
+  const legacy = JSON.parse(localStorage.getItem('sc_orders') || '[]');
+  if (!legacy.length) {
+    console.log('[Migrate] No legacy sc_orders found — nothing to do.');
+  } else {
+    console.log(`[Migrate] Found ${legacy.length} legacy orders in sc_orders`);
+    const byStore = { grocery: [], toy: [], school: [] };
+
+    legacy.forEach(o => {
+      /* Guess store from product ID prefix or cashier email */
+      let sid = null;
+      if (o.items && o.items.length) {
+        const prefix = (o.items[0].id || '').slice(0, 2).toUpperCase();
+        sid = PREFIX_MAP[prefix] || null;
+      }
+      if (!sid && o.cashier) {
+        if (o.cashier.includes('jdc') || o.cashier.includes('grocery')) sid = 'grocery';
+        else if (o.cashier.includes('toy') || o.cashier.includes('landia'))  sid = 'toy';
+        else if (o.cashier.includes('hiraya') || o.cashier.includes('school')) sid = 'school';
+      }
+      if (!sid) sid = 'grocery'; // fallback
+      byStore[sid].push(o);
+    });
+
+    /* 2 — Merge into scoped localStorage keys (deduplicate by id) */
+    for (const storeId of STORES) {
+      if (!byStore[storeId].length) continue;
+      const key      = `sc_orders_${storeId}`;
+      const existing = JSON.parse(localStorage.getItem(key) || '[]');
+      const existIds = new Set(existing.map(o => o.id));
+      const merged   = [...existing, ...byStore[storeId].filter(o => !existIds.has(o.id))];
+      localStorage.setItem(key, JSON.stringify(merged));
+      console.log(`[Migrate] ${storeId}: merged ${byStore[storeId].length} orders → sc_orders_${storeId}`);
+
+      /* 3 — Sync the newly merged orders to Supabase */
+      for (const o of byStore[storeId]) {
+        await _sb.from('orders').upsert({
+          id:            o.id,
+          store_id:      storeId,
+          cashier_name:  o.cashier || null,
+          customer_id:   o.customerId || null,
+          customer_name: o.customerName || 'Walk-in',
+          list_name:     o.listName || null,
+          items:         o.items || [],
+          subtotal:      o.subtotal || 0,
+          discount:      o.discount || 0,
+          tax:           o.tax || 0,
+          total:         o.total || 0,
+          status:        o.status || 'completed',
+          weight_check:  o.weightCheck || null,
+          created_at:    o.date || new Date().toISOString(),
+        }, { onConflict: 'id' });
+      }
+    }
+
+    /* 4 — Remove the old unscoped key so it stops interfering */
+    localStorage.removeItem('sc_orders');
+    console.log('[Migrate] Removed legacy sc_orders key.');
+  }
+
+  console.log('[Migrate] ✅ Migration complete.');
+}
+
   /* ── Expose globals so shared.js / admin.js / customer.js can use them ── */
-  window.DB            = DB;
-  window.seedSupabase  = seedSupabase;
+  window.DB                        = DB;
+  window.seedSupabase               = seedSupabase;
+  window.migrateOrdersToScopedKeys  = migrateOrdersToScopedKeys;
 
 })();

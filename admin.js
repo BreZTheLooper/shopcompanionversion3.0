@@ -88,10 +88,11 @@ function loadAndRenderOrders() {
   if (storeId && typeof DB !== 'undefined') {
     DB.getOrders(storeId).then(orders => {
       if (orders && orders.length) {
-        // Merge with any orders already in localStorage (avoid duplicates)
+        // Only merge orders that belong to this store (belt-and-suspenders guard)
+        const storeOrders = orders.filter(o => !o.storeId || o.storeId === storeId);
         const local = Orders.getAll();
         const localIds = new Set(local.map(o => o.id));
-        const newOrders = orders.filter(o => !localIds.has(o.id));
+        const newOrders = storeOrders.filter(o => !localIds.has(o.id));
         if (newOrders.length) {
           Orders.save([...newOrders, ...local]);
         }
