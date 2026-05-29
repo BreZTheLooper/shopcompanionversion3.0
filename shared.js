@@ -138,7 +138,10 @@ const Inventory = {
   },
 
   save(inv) {
-    const sid = _getStoreId();
+    const sid = _getStoreId()
+              || (typeof sessionStorage !== 'undefined'
+                  ? (sessionStorage.getItem('sc_selected_store') || null)
+                  : null);
     if (sid) Store.set('inventory_' + sid, inv);
     Store.set('inventory', inv);
   },

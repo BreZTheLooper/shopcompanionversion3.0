@@ -598,21 +598,29 @@ function loginSuccess(role, storeId, storeName) {
   loadStoreInventory(storeId);
   _afterInventoryLoad();
 
-  // Background sync: pull fresh inventory from Supabase and update cache
+  // Background sync: pull fresh inventory from Supabase and MERGE with local cache.
+  // We never discard locally-added items (IDs like P123456) that may not be in Supabase yet.
   if (storeId && typeof DB !== 'undefined') {
     DB.getInventory(storeId).then(items => {
       if (items && items.length) {
-        // Guard: only accept Supabase data if IDs match current STORE_DEFINITIONS.
-        // Prevents stale/old Supabase rows from overwriting the fresh local seed.
-        const validIds = new Set((STORE_DEFINITIONS[storeId]?.inventory || []).map(p => p.id));
-        const isStale  = items.every(p => !validIds.has(p.id));
-        if (isStale) {
-          console.warn('[loginSuccess] Supabase has stale inventory IDs — skipping overwrite. Run seedSupabase() to update.');
+        // Guard: reject only if Supabase has zero overlap with known seed IDs AND no user-added IDs.
+        // User-added products have IDs starting with 'P' followed by digits (e.g. P123456).
+        const seedIds   = new Set((STORE_DEFINITIONS[storeId]?.inventory || []).map(p => p.id));
+        const hasSeeds  = items.some(p => seedIds.has(p.id));
+        const hasCustom = items.some(p => /^P\d+$/.test(p.id));
+        if (!hasSeeds && !hasCustom) {
+          console.warn('[loginSuccess] Supabase inventory appears fully stale — skipping sync. Run seedSupabase() to update.');
           return;
         }
-        MultiStore.saveInventory(storeId, items);
-        Store.set('inventory_' + storeId, items);
-        Store.set('inventory', items);
+        // MERGE: overlay local-only items (just added, not yet in Supabase) on top of remote data.
+        const local     = MultiStore.getInventory(storeId);
+        const remoteMap = new Map(items.map(p => [p.id, p]));
+        const localOnly = local.filter(p => !remoteMap.has(p.id));
+        const merged    = [...items, ...localOnly];
+
+        MultiStore.saveInventory(storeId, merged);
+        Store.set('inventory_' + storeId, merged);
+        Store.set('inventory', merged);
         // Re-render if inventory panel is visible
         if (typeof renderClientInventory  === 'function') renderClientInventory();
         if (typeof renderCashierInventory === 'function') renderCashierInventory();
@@ -712,9 +720,32 @@ function selectStoreAndEnter(storeId) {
     if (bar) bar.style.width = '60%';
   }, 50);
 
-  // Load this store's inventory
+  // Load this store's inventory from local cache (instant)
   const storeInventory = MultiStore.getInventory(storeId);
   Store.set('inventory', storeInventory);
+  Store.set('inventory_' + storeId, storeInventory);
+
+  // Background sync from Supabase — merge so new products added by the client always appear
+  if (typeof DB !== 'undefined') {
+    DB.getInventory(storeId).then(items => {
+      if (items && items.length) {
+        const seedIds   = new Set((STORE_DEFINITIONS[storeId]?.inventory || []).map(p => p.id));
+        const hasSeeds  = items.some(p => seedIds.has(p.id));
+        const hasCustom = items.some(p => /^P\d+$/.test(p.id));
+        if (!hasSeeds && !hasCustom) return; // fully stale Supabase data — ignore
+        // Merge: keep local-only items not yet synced to Supabase
+        const local     = MultiStore.getInventory(storeId);
+        const remoteMap = new Map(items.map(p => [p.id, p]));
+        const localOnly = local.filter(p => !remoteMap.has(p.id));
+        const merged    = [...items, ...localOnly];
+        MultiStore.saveInventory(storeId, merged);
+        Store.set('inventory_' + storeId, merged);
+        Store.set('inventory', merged);
+        // Re-render shop if it's visible
+        if (typeof renderShop === 'function') renderShop();
+      }
+    }).catch(() => {});
+  }
 
   // Load cart for this store
   try { cart = MultiStore.getCart(storeId); } catch(e) { cart = []; }
