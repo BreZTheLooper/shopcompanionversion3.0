@@ -3,10 +3,10 @@
    Primary Light Theme: #dde6f3
    ============================================================ */
 
-@import url('https://fonts.googleapis.com/css2?family=Gelasio:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500&family=Archivo:wght@400;500;600;700;800&display=swap');
-/* Geneva is a system font (macOS/iOS); Calisto MT is system on Windows.
-   Gelasio (Google Fonts) serves as the web-safe body fallback.
-   Archivo (Google Fonts) is loaded above for all numeric/data contexts. */
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,400;0,500;0,600;0,700;0,800;1,400&family=Inter:wght@400;500;600;700&family=Archivo:wght@400;500;600;700;800&display=swap');
+/* Plus Jakarta Sans — display/headings: modern geometric sans, retail-forward, confident at any weight.
+   Inter          — body copy: the gold standard for screen legibility across dashboards and storefronts.
+   Archivo        — data/numbers: tabular figures, crisp mono-width digits, ideal for prices and stats. */
 
 /* ── CSS Tokens ── */
 :root {
@@ -35,13 +35,13 @@
   --purple-pale:  #ede8ff;
 
   /* ── Typography ──
-     Display/Heading : Geneva (system, macOS/iOS) → Calisto MT (system, Windows) → Georgia fallback
-     Body            : Gelasio (web) → Courier New fallback
-     Numbers/Data    : Archivo (web) → Courier New fallback
+     Display/Heading : Plus Jakarta Sans — geometric, modern, excellent at 700–800 weight for retail headings
+     Body            : Inter — the standard for legible UI copy; crisp at 13–15px across all panels
+     Numbers/Data    : Archivo — tabular figures, monospaced digits for prices, stock counts, and stats
   */
-  --font-display:  'Geneva', 'Calisto MT', 'Georgia', serif;
-  --font-subhead:  'Geneva', 'Calisto MT', 'Georgia', serif;
-  --font-body:     'Gelasio', 'Courier New', serif;
+  --font-display:  'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+  --font-subhead:  'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+  --font-body:     'Inter', system-ui, -apple-system, sans-serif;
   --font-data:     'Archivo', 'Courier New', monospace;
   --font-digital:  'Archivo', 'Courier New', monospace;
   /* keep --font-mono as an alias for the existing mono/data font used across the app */
@@ -242,7 +242,7 @@ html.light-theme body.dark-theme {
   --green-dark:  #07764a;   /* was #0d8f5a */
   --yellow-dark: #6a4800;   /* was #a07e00 — deepened for dark-bg use */
   --red-dark:    #a81e30;   /* was #b02030 */
-  --font-subhead: 'Geneva', 'Calisto MT', 'Georgia', serif;
+  --font-subhead: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
   --shadow-blue: 0 4px 20px rgba(26,95,212,0.25);
   --radius-sm:   6px;
   --radius-md:   10px;
@@ -270,8 +270,10 @@ html, body {
   font-size: 15px;
   background: var(--bg);
   color: var(--text);
-  line-height: 1.55;
+  line-height: 1.6;
+  letter-spacing: -0.01em;   /* Inter sits slightly tight; this compensates without going loose */
   -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
 .hidden { display: none !important; }
@@ -297,7 +299,7 @@ a { text-decoration: none; color: inherit; }
 .splash-title {
   font-family: var(--font-display);
   font-size: 2.6rem; font-weight: 800;
-  color: #fff; letter-spacing: 0.12em;
+  color: #fff; letter-spacing: 0.04em;  /* PJS at 800w needs less tracking than serif */
   text-transform: uppercase;
 }
 
@@ -364,7 +366,7 @@ a { text-decoration: none; color: inherit; }
   font-family: var(--font-display);
   font-size: 2.2rem; font-weight: 800;
   color: var(--text); margin-bottom: 6px; text-align: center;
-  letter-spacing: -0.02em;
+  letter-spacing: -0.01em;  /* PJS 800 is already tight; keep subtle */
 }
 .access-selector .lead {
   font-family: var(--font-body); color: var(--text-3); font-size: 15px;

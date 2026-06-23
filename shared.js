@@ -1,5 +1,5 @@
 /**
- * SHOP COMPANION v3.0 — Shared Utilities & Data Layer
+ * DASH UP v3.0 — Shared Utilities & Data Layer
  * Supabase-integrated: Inventory, Orders, Retailers, Customers
  * localStorage still used as fast local cache.
  */
@@ -30,9 +30,9 @@ function seedData() {
   ]);
 
   Store.set('retailers', [
-    { id: 'R001', clientName: 'Juan Dela Cruz', storeName: 'JDC Grocery',    email: 'jdcgrocery@astech.pro',  phone: '09171234567', location: 'Makati City, Metro Manila',   plan: 'PLAN_BASIC',   accessCode: 'JDC-BAS-2024', subscriptionStart: '2025-01-01', subscriptionEnd: '2027-01-01', status: 'active', monthlyRevenue: [42000,45000,38000,51000,48000,55000] },
-    { id: 'R002', clientName: 'Maria Santos',   storeName: 'Toylandia',       email: 'toylandia@astech.pro',   phone: '09181234567', location: 'Quezon City, Metro Manila',   plan: 'PLAN_PRO',     accessCode: 'TOY-PRO-2024', subscriptionStart: '2025-03-15', subscriptionEnd: '2027-09-15', status: 'active', monthlyRevenue: [18000,21000,19500,22000,20000,23000] },
-    { id: 'R003', clientName: 'Pedro Reyes',    storeName: 'Hiraya Likhain',  email: 'hirayal@astech.premium', phone: '09191234567', location: 'Cebu City, Cebu',            plan: 'PLAN_PREMIUM', accessCode: 'INK-PRM-2024', subscriptionStart: '2025-06-01', subscriptionEnd: '2027-06-01', status: 'active', monthlyRevenue: [95000,102000,98000,110000,105000,118000] },
+    { id: 'R001', clientName: 'Juan Dela Cruz', storeName: 'JDC Grocery',    email: 'jdcgrocery@dashup.pro',  phone: '09171234567', location: 'Makati City, Metro Manila',   plan: 'PLAN_BASIC',   accessCode: 'JDC-BAS-2024', subscriptionStart: '2025-01-01', subscriptionEnd: '2027-01-01', status: 'active', monthlyRevenue: [42000,45000,38000,51000,48000,55000] },
+    { id: 'R002', clientName: 'Maria Santos',   storeName: 'Toylandia',       email: 'toylandia@dashup.pro',   phone: '09181234567', location: 'Quezon City, Metro Manila',   plan: 'PLAN_PRO',     accessCode: 'TOY-PRO-2024', subscriptionStart: '2025-03-15', subscriptionEnd: '2027-09-15', status: 'active', monthlyRevenue: [18000,21000,19500,22000,20000,23000] },
+    { id: 'R003', clientName: 'Pedro Reyes',    storeName: 'Hiraya Likhain',  email: 'hirayal@dashup.pro', phone: '09191234567', location: 'Cebu City, Cebu',            plan: 'PLAN_PREMIUM', accessCode: 'INK-PRM-2024', subscriptionStart: '2025-06-01', subscriptionEnd: '2027-06-01', status: 'active', monthlyRevenue: [95000,102000,98000,110000,105000,118000] },
   ]);
 
   Store.set('vouchers', [

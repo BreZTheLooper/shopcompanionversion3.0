@@ -1,5 +1,5 @@
 /**
- * SHOP COMPANION v2.0 — Admin Panel Logic
+ * DASH UP v2.0 — Admin Panel Logic
  * Covers: Developer Panel, Client (Retailer) Panel, Cashier Panel
  * Handles: Retailers, Subscriptions, Inventory CRUD, Barcode Scanner,
  *          QR Checkout, Customer Management, Orders, Receipts
@@ -1882,7 +1882,7 @@ function renderCheckoutOrder(data) {
         </button>
       </div>
       <div style="margin-top:8px;font-family:var(--font-body);font-size:11px;color:var(--text-3)">
-        Requires Chrome / Edge · Arduino must run <em>ShopCompanion_Scale.ino</em> at 115200 baud ·
+        Requires Chrome / Edge · Arduino must run <em>DashUp_Scale.ino</em> at 115200 baud ·
         <strong style="color:var(--yellow)">Close Arduino IDE Serial Monitor before connecting</strong>
       </div>
     </div>
@@ -2140,7 +2140,7 @@ async function _serialScaleStartRead() {
 
 /**
  * Parse a line from the Arduino sketch.
- * Expected format from ShopCompanion_Scale.ino:
+ * Expected format from DashUp_Scale.ino:
  *   WEIGHT:123.4
  *   TARE_OK
  *   STABLE:456.7
@@ -2363,7 +2363,7 @@ function showReceiptCashier(order) {
   const now = new Date();
   let html = `
     <div class="receipt">
-      <div class="receipt-title">🛒 SHOP COMPANION</div>
+      <div class="receipt-title">🛒 DASH UP</div>
       <div style="text-align:center;font-family:var(--font-data);color:var(--gray-400);font-size:11px;margin-bottom:8px">OFFICIAL RECEIPT</div>
       <hr class="receipt-divider" />
       <div class="receipt-row"><span>Order:</span><span>${order.id}</span></div>

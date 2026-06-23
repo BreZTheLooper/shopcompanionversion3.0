@@ -1,5 +1,5 @@
 /**
- * SHOP COMPANION v2.0 — Authentication & Multi-Store System
+ * DASH UP v2.0 — Authentication & Multi-Store System
  * Handles: Client login, Cashier login, Customer global auth,
  *          Store selector, Multi-store inventory isolation,
  *          Developer monitoring panel
@@ -15,15 +15,15 @@ const AUTH_CONFIG = {
   },
 
   clients: {
-    'jdcgrocery@astech.pro':     { password: 'jdcgrocery', storeId: 'grocery', storeName: 'JDC Grocery',  plan: 'basic'   },
-    'toylandia@astech.pro':      { password: 'toylandia',  storeId: 'toy',     storeName: 'Toylandia',    plan: 'pro'     },
-    'hirayal@astech.premium':    { password:   'hirayal',    storeId: 'school',  storeName: 'Hiraya Likhain',     plan: 'premium' }
+    'jdcgrocery@dashup.pro':     { password: 'jdcgrocery', storeId: 'grocery', storeName: 'JDC Grocery',  plan: 'basic'   },
+    'toylandia@dashup.pro':      { password: 'toylandia',  storeId: 'toy',     storeName: 'Toylandia',    plan: 'pro'     },
+    'hirayal@dashup.pro':    { password:   'hirayal',    storeId: 'school',  storeName: 'Hiraya Likhain',     plan: 'premium' }
   },
 
   cashiers: {
-    'mariasantos@jdcgrocery.cashier.pro':  { password: 'maria333',    storeId: 'grocery', storeName: 'JDC Grocery', clientEmail: 'jdcgrocery@astech.pro'  },
-    'markreyes@toylandia.cashier.pro':     { password: 'markreyes',   storeId: 'toy',     storeName: 'Toylandia',   clientEmail: 'toylandia@astech.pro'    },
-    'junecruz@hirayal.cashier.premium':    { password: 'junecruz123', storeId: 'school',  storeName: 'Hiraya Likhain',    clientEmail: 'hirayal@astech.premium'  }
+    'mariasantos@jdcgrocery.cashier.pro':  { password: 'maria333',    storeId: 'grocery', storeName: 'JDC Grocery', clientEmail: 'jdcgrocery@dashup.pro'  },
+    'markreyes@toylandia.cashier.pro':     { password: 'markreyes',   storeId: 'toy',     storeName: 'Toylandia',   clientEmail: 'toylandia@dashup.pro'    },
+    'junecruz@hirayal.cashier.premium':    { password: 'junecruz123', storeId: 'school',  storeName: 'Hiraya Likhain',    clientEmail: 'hirayal@dashup.pro'  }
   }
 };
 
@@ -316,8 +316,8 @@ function showAuthScreen(role) {
       title: 'Client Login',
       subtitle: 'Store Owner / Retailer Access',
       icon: '<img src="assets/Client_Icon.png" alt="Client" style="width:64px;height:64px;object-fit:contain;border-radius:16px;">',
-      placeholder: 'storename@astech.pro',
-      hint: 'e.g. jdcgrocery@astech.pro',
+      placeholder: 'storename@dashup.pro',
+      hint: 'e.g. jdcgrocery@dashup.pro',
       color: '#1de98b'
     },
     cashier: {
@@ -406,17 +406,17 @@ function showAuthScreen(role) {
 function getDemoAccountsHTML(role) {
   if (role === 'client') {
     return `
-      <div class="demo-account" onclick="fillDemo('jdcgrocery@astech.pro','jdcgrocery')">
+      <div class="demo-account" onclick="fillDemo('jdcgrocery@dashup.pro','jdcgrocery')">
         <span class="demo-store">🛒 JDC Grocery</span>
-        <span class="demo-cred">jdcgrocery@astech.pro / jdcgrocery</span>
+        <span class="demo-cred">jdcgrocery@dashup.pro / jdcgrocery</span>
       </div>
-      <div class="demo-account" onclick="fillDemo('toylandia@astech.pro','toylandia')">
+      <div class="demo-account" onclick="fillDemo('toylandia@dashup.pro','toylandia')">
         <span class="demo-store">🧸 Toylandia</span>
-        <span class="demo-cred">toylandia@astech.pro / toylandia</span>
+        <span class="demo-cred">toylandia@dashup.pro / toylandia</span>
       </div>
-      <div class="demo-account" onclick="fillDemo('hirayal@astech.premium',  'hirayal')">
+      <div class="demo-account" onclick="fillDemo('hirayal@dashup.pro',  'hirayal')">
         <span class="demo-store">📚 Hiraya Likhain</span>
-        <span class="demo-cred">hirayal@astech.premium / hirayal</span>
+        <span class="demo-cred">hirayal@dashup.pro / hirayal</span>
       </div>
     `;
   }

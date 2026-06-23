@@ -1,4 +1,4 @@
-# Shop Companion 3.0
+# Dash Up
 
 **A multi-store retail intelligence platform** for managing inventory, cashiers, and customer checkout — built as a single-page web app with a Supabase backend.
 
@@ -8,7 +8,7 @@ Live site: [dashup.store](https://dashup.store)
 
 ## Overview
 
-Shop Companion 3.0 supports three simultaneous retail stores with fully isolated inventory, per-store cashier accounts, a shared customer loyalty system, and real-time data sync via Supabase. A developer panel sits above the client layer, enabling platform-wide monitoring of retailers and subscriptions.
+Dash Up supports three simultaneous retail stores with fully isolated inventory, per-store cashier accounts, a shared customer loyalty system, and real-time data sync via Supabase. A developer panel sits above the client layer, enabling platform-wide monitoring of retailers and subscriptions.
 
 ### Stores
 
@@ -45,7 +45,7 @@ Data flows **localStorage (fast cache) → Supabase (persistent store)**. All wr
 | Role | Access | Credentials (demo) |
 |---|---|---|
 | **Developer** | Platform-wide: all retailers, subscriptions, customer accounts, raw DB | PIN `363738` |
-| **Client / Retailer** | Their own store: inventory, cashiers, orders, reports | e.g. `jdcgrocery@astech.pro` / `jdcgrocery` |
+| **Client / Retailer** | Their own store: inventory, cashiers, orders, reports | e.g. `jdcgrocery@dashup.pro` / `jdcgrocery` |
 | **Cashier** | Checkout, barcode scanner, weight verification, order receipts | e.g. `mariasantos@jdcgrocery.cashier.pro` / `maria333` |
 | **Customer** | Browse products, cart, shopping lists, QR loyalty card, rewards | Self-registered |
 
@@ -55,7 +55,7 @@ Data flows **localStorage (fast cache) → Supabase (persistent store)**. All wr
 
 **Developer Panel**
 - Retailer management (add / edit / delete)
-- Subscription plans (Basic ₱499, Pro ₱999, Premium ₱1,999 / 30 days)
+- Subscription plans (Basic ₱1,499, Pro ₱3,999, Premium ₱6,499 / 30 days)
 - Platform-wide customer accounts and cashier accounts
 - Revenue overview per retailer
 
@@ -227,9 +227,9 @@ All loaded via CDN — no build step required.
 
 | Email | Password | Store |
 |---|---|---|
-| `jdcgrocery@astech.pro` | `jdcgrocery` | JDC Grocery |
-| `toylandia@astech.pro` | `toylandia` | Toylandia |
-| `hirayal@astech.premium` | `hirayal` | Hiraya Likhain |
+| `jdcgrocery@dashup.pro` | `jdcgrocery` | JDC Grocery |
+| `toylandia@dashup.pro` | `toylandia` | Toylandia |
+| `hirayal@dashup.pro` | `hirayal` | Hiraya Likhain |
 
 **Cashiers**
 
