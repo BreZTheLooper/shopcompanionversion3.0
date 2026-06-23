@@ -301,109 +301,144 @@ function seedMultiStoreData() {
 }
 
 /* ============================================================
+   UNIFIED AUTH CONTROLLER
+   ============================================================ */
+
+let _unifiedCurrentRole = null;
+
+function unifiedSelectRole(role) {
+  _unifiedCurrentRole = role;
+
+  // Show form panel, hide role picker and logo
+  document.getElementById('unifiedRolePicker')?.classList.add('hidden');
+  document.getElementById('unifiedAuthForm')?.classList.remove('hidden');
+  document.getElementById('unifiedAuthLogo')?.classList.add('hidden');
+
+  // Configure role header
+  const headerEl = document.getElementById('unifiedRoleHeader');
+  const roleMeta = {
+    developer: {
+      icon: `<span class="role-svg-icon dev-svg"><svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg></span>`,
+      title: 'Developer Access', subtitle: 'Platform monitoring & administration'
+    },
+    client: {
+      icon: `<span class="role-svg-icon client-svg"><svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"></path><line x1="3" y1="6" x2="21" y2="6"></line><path d="M16 10a4 4 0 0 1-8 0"></path></svg></span>`,
+      title: 'Client Login', subtitle: 'Store owner & retailer access'
+    },
+    cashier: {
+      icon: `<span class="role-svg-icon cashier-svg"><svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="1" x2="12" y2="23"></line><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path></svg></span>`,
+      title: 'Cashier Login', subtitle: 'Point of sale access'
+    },
+    customer: {
+      icon: `<span class="role-svg-icon customer-svg"><svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="21" r="1"></circle><circle cx="20" cy="21" r="1"></circle><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"></path></svg></span>`,
+      title: 'Customer Account', subtitle: 'Shop across all stores'
+    },
+  };
+  const meta = roleMeta[role];
+  if (headerEl && meta) {
+    headerEl.innerHTML = `
+      <div class="unified-role-icon">${meta.icon}</div>
+      <h2 class="auth-title">${meta.title}</h2>
+      <p class="auth-subtitle">${meta.subtitle}</p>
+    `;
+  }
+
+  // Show/hide tab bar (customer only)
+  const tabBar = document.getElementById('unifiedTabBar');
+  if (tabBar) tabBar.classList.toggle('hidden', role !== 'customer');
+
+  // Switch to login form by default
+  unifiedSwitchTab('login');
+
+  // Configure form fields for this role
+  if (role === 'developer') {
+    document.getElementById('devPinGroup')?.classList.remove('hidden');
+    document.getElementById('emailPwGroup')?.classList.add('hidden');
+    const loginBtn = document.getElementById('unifiedLoginBtn');
+    if (loginBtn) loginBtn.textContent = '🔐 Enter Developer Panel';
+    setTimeout(() => document.getElementById('devPinInput')?.focus(), 100);
+  } else {
+    document.getElementById('devPinGroup')?.classList.add('hidden');
+    document.getElementById('emailPwGroup')?.classList.remove('hidden');
+
+    const placeholders = {
+      client:   { label: 'Store Email',    placeholder: 'storename@dashup.pro',              hint: 'e.g. jdcgrocery@dashup.pro' },
+      cashier:  { label: 'Cashier Email',  placeholder: 'name@storeid.cashier.plan',          hint: 'e.g. mariasantos@jdcgrocery.cashier.pro' },
+      customer: { label: 'Email Address',  placeholder: 'your@gmail.com',                     hint: 'Global account — shop anywhere' },
+    };
+    const cfg = placeholders[role];
+    if (cfg) {
+      const lbl  = document.getElementById('unifiedEmailLabel');
+      const inp  = document.getElementById('authEmail');
+      const hint = document.getElementById('unifiedEmailHint');
+      if (lbl)  lbl.textContent  = cfg.label;
+      if (inp)  inp.placeholder  = cfg.placeholder;
+      if (hint) hint.textContent = cfg.hint;
+    }
+    const loginBtn = document.getElementById('unifiedLoginBtn');
+    if (loginBtn) loginBtn.textContent = 'Log In';
+    setTimeout(() => document.getElementById('authEmail')?.focus(), 100);
+  }
+
+  // Populate demo accounts
+  const demoEl = document.getElementById('unifiedDemoAccounts');
+  if (demoEl) {
+    const html = getDemoAccountsHTML(role);
+    demoEl.innerHTML = html
+      ? `<div class="demo-label">Demo Accounts</div>${html}`
+      : '';
+  }
+}
+
+function unifiedSwitchTab(tab) {
+  document.getElementById('tabLogin')?.classList.toggle('active', tab === 'login');
+  document.getElementById('tabRegister')?.classList.toggle('active', tab === 'register');
+
+  document.getElementById('unifiedLoginForm')?.classList.toggle('hidden', tab !== 'login');
+  document.getElementById('unifiedRegisterForm')?.classList.toggle('hidden', tab !== 'register');
+  document.getElementById('unifiedDemoAccounts')?.classList.toggle('hidden', tab !== 'login');
+}
+
+function unifiedBackToRoles() {
+  _unifiedCurrentRole = null;
+  document.getElementById('unifiedAuthForm')?.classList.add('hidden');
+  document.getElementById('unifiedRolePicker')?.classList.remove('hidden');
+  document.getElementById('unifiedAuthLogo')?.classList.remove('hidden');
+  // Reset all inputs
+  ['devPinInput','authEmail','authPassword','regFullName','regGmail','regPass','regPhone2'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.value = '';
+  });
+}
+
+function unifiedAttemptLogin() {
+  if (!_unifiedCurrentRole) return;
+  if (_unifiedCurrentRole === 'developer') {
+    attemptDevLogin();
+  } else {
+    attemptLogin(_unifiedCurrentRole);
+  }
+}
+
+/* ============================================================
    AUTHENTICATION FUNCTIONS
    ============================================================ */
 
-// Show login screen for a specific role
+// Show login screen for a specific role (backwards-compat shim → unified)
 function showAuthScreen(role) {
-  // Hide all views first
-  document.getElementById('view-selector')?.classList.add('hidden');
   document.getElementById('auth-screen')?.classList.remove('hidden');
-
-  const screen = document.getElementById('auth-screen');
-  const configs = {
-    client: {
-      title: 'Client Login',
-      subtitle: 'Store Owner / Retailer Access',
-      icon: '<img src="assets/Client_Icon.png" alt="Client" style="width:64px;height:64px;object-fit:contain;border-radius:16px;">',
-      placeholder: 'storename@dashup.pro',
-      hint: 'e.g. jdcgrocery@dashup.pro',
-      color: '#1de98b'
-    },
-    cashier: {
-      title: 'Cashier Login',
-      subtitle: 'Point of Sale Access',
-      icon: '<img src="assets/Cashier_Icon.png" alt="Cashier" style="width:64px;height:64px;object-fit:contain;border-radius:16px;">',
-      placeholder: 'name@storeid.cashier.plan',
-      hint: 'e.g. mariasantos@jdcgrocery.cashier.pro',
-      color: '#E048DC'
-    },
-    customer: {
-      title: 'Customer Login',
-      subtitle: 'Shop Across All Stores',
-      icon: '<img src="assets/Customer_Icon.png" alt="Customer" style="width:64px;height:64px;object-fit:contain;border-radius:16px;">',
-      placeholder: 'your@gmail.com',
-      hint: 'Global account — shop anywhere',
-      color: '#ff4f6a'
-    }
-  };
-
-  const cfg = configs[role];
-  if (!cfg) return;
-
-  screen.innerHTML = `
-    <div class="auth-container">
-      <div class="auth-card">
-        <button class="auth-back-btn" onclick="backToSelector()">← Back</button>
-        <div class="auth-icon">${cfg.icon}</div>
-        <h2 class="auth-title">${cfg.title}</h2>
-        <p class="auth-subtitle">${cfg.subtitle}</p>
-        
-        <div class="auth-form">
-          <div class="form-group" style="margin-bottom:16px">
-            <label class="form-label">Email / Username</label>
-            <input class="form-input" id="authEmail" type="text" 
-                   placeholder="${cfg.placeholder}" 
-                   autocomplete="username"
-                   onkeydown="if(event.key==='Enter')document.getElementById('authPassword').focus()" />
-            <small style="color:var(--gray-400);font-family:var(--font-data);font-size:11px;margin-top:4px;display:block">${cfg.hint}</small>
-          </div>
-          <div class="form-group" style="margin-bottom:24px">
-            <label class="form-label">Password</label>
-            <div style="position:relative">
-              <input class="form-input" id="authPassword" type="password" 
-                     placeholder="Enter password"
-                     autocomplete="current-password"
-                     onkeydown="if(event.key==='Enter')attemptLogin('${role}')" />
-              <button onclick="togglePasswordVisibility()" 
-                      style="position:absolute;right:12px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;color:var(--gray-400);font-size:16px"
-                      title="Show/hide password">👁</button>
-            </div>
-          </div>
-          
-          ${role === 'customer' ? `
-          <div style="text-align:center;margin-bottom:16px">
-            <a href="#" onclick="showRegisterForm()" style="color:var(--blue-light);font-family:var(--font-data);font-size:12px">
-              Don't have an account? Sign up
-            </a>
-          </div>` : ''}
-          
-          <button class="btn btn-primary w-full btn-lg" onclick="attemptLogin('${role}')" 
-                  style="background:${cfg.color};color:#0a0a0f;border-color:${cfg.color}">
-            Login as ${cfg.title.split(' ')[0]}
-          </button>
-          
-          ${role === 'customer' ? `
-          <div style="margin-top:12px">
-            <button class="btn btn-ghost w-full" onclick="continueAsGuestFromAuth()">
-              Continue as Guest
-            </button>
-          </div>` : ''}
-        </div>
-
-        <div class="auth-demo-accounts">
-          <div class="demo-label">Demo Accounts</div>
-          ${getDemoAccountsHTML(role)}
-        </div>
-      </div>
-    </div>
-  `;
-
-  // Focus on email field
-  setTimeout(() => document.getElementById('authEmail')?.focus(), 100);
+  unifiedSelectRole(role);
 }
 
 function getDemoAccountsHTML(role) {
+  if (role === 'developer') {
+    return `
+      <div class="demo-account" onclick="document.getElementById('devPinInput').value='363738';toast('Demo PIN filled!','info')">
+        <span class="demo-store"><svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:middle;margin-right:4px"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>Developer</span>
+        <span class="demo-cred">PIN: 363738</span>
+      </div>
+    `;
+  }
   if (role === 'client') {
     return `
       <div class="demo-account" onclick="fillDemo('jdcgrocery@dashup.pro','jdcgrocery')">
@@ -466,8 +501,7 @@ function togglePasswordVisibility() {
 }
 
 function backToSelector() {
-  document.getElementById('auth-screen')?.classList.add('hidden');
-  document.getElementById('view-selector')?.classList.remove('hidden');
+  unifiedBackToRoles();
 }
 
 function attemptLogin(role) {
@@ -829,41 +863,8 @@ function switchStore() {
    CUSTOMER REGISTRATION
    ============================================================ */
 function showRegisterForm() {
-  const screen = document.getElementById('auth-screen');
-  if (!screen) return;
-
-  screen.innerHTML = `
-    <div class="auth-container">
-      <div class="auth-card">
-        <button class="auth-back-btn" onclick="showAuthScreen('customer')">← Back to Login</button>
-        <div class="auth-icon">👤</div>
-        <h2 class="auth-title">Create Account</h2>
-        <p class="auth-subtitle">Shop across all stores with one account</p>
-        
-        <div class="auth-form">
-          <div class="form-group" style="margin-bottom:14px">
-            <label class="form-label">Full Name *</label>
-            <input class="form-input" id="regFullName" placeholder="Juan Dela Cruz" />
-          </div>
-          <div class="form-group" style="margin-bottom:14px">
-            <label class="form-label">Gmail Address *</label>
-            <input class="form-input" id="regGmail" type="email" placeholder="juan@gmail.com" />
-          </div>
-          <div class="form-group" style="margin-bottom:14px">
-            <label class="form-label">Password *</label>
-            <input class="form-input" id="regPass" type="password" placeholder="Create a password" />
-          </div>
-          <div class="form-group" style="margin-bottom:24px">
-            <label class="form-label">Phone Number</label>
-            <input class="form-input" id="regPhone2" placeholder="09XXXXXXXXX" />
-          </div>
-          <button class="btn btn-primary w-full btn-lg" onclick="registerCustomerAccount()">
-            Create My Account
-          </button>
-        </div>
-      </div>
-    </div>
-  `;
+  // No longer a separate screen — switch to the Sign Up tab in the unified card
+  unifiedSwitchTab('register');
 }
 
 function registerCustomerAccount() {
@@ -966,44 +967,8 @@ function logout() {
    DEVELOPER ENHANCED LOGIN
    ============================================================ */
 function showDevLogin() {
-  document.getElementById('view-selector')?.classList.add('hidden');
   document.getElementById('auth-screen')?.classList.remove('hidden');
-
-  const screen = document.getElementById('auth-screen');
-  screen.innerHTML = `
-    <div class="auth-container">
-      <div class="auth-card">
-        <button class="auth-back-btn" onclick="backToSelector()">← Back</button>
-        <div class="auth-icon"><img src="assets/Developer_Icon.png" alt="Developer" style="width:64px;height:64px;object-fit:contain;border-radius:16px;"></div>
-        <h2 class="auth-title">Developer Access</h2>
-        <p class="auth-subtitle">Platform monitoring & system administration</p>
-        
-        <div class="auth-form">
-          <div class="form-group" style="margin-bottom:24px">
-            <label class="form-label">Developer PIN</label>
-            <input class="form-input pin-input" id="devPinInput" type="password" 
-                   placeholder="······" maxlength="6"
-                   style="text-align:center;letter-spacing:0.3em;font-family:var(--font-digital);font-size:1.4rem"
-                   onkeydown="if(event.key==='Enter')attemptDevLogin()" 
-                   autocomplete="off" />
-          </div>
-          <button class="btn btn-primary w-full btn-lg" onclick="attemptDevLogin()"
-                  style="background:#1b2475;border-color:#1b2475">
-            🔐 Enter Developer Panel
-          </button>
-        </div>
-
-        <div class="auth-demo-accounts">
-          <div class="demo-label">Demo PIN</div>
-          <div class="demo-account" onclick="document.getElementById('devPinInput').value='363738'">
-            <span class="demo-store"><img src="assets/Developer_Icon.png" alt="Developer" style="width:16px;height:16px;object-fit:contain;border-radius:4px;vertical-align:middle;"> Developer</span>
-            <span class="demo-cred">PIN: 363738</span>
-          </div>
-        </div>
-      </div>
-    </div>
-  `;
-  setTimeout(() => document.getElementById('devPinInput')?.focus(), 100);
+  unifiedSelectRole('developer');
 }
 
 function attemptDevLogin() {
@@ -1116,7 +1081,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const role = AuthState.currentRole;
     const user = AuthState.currentUser;
     if (role === 'developer') {
-      // Stay at selector; dev needs to re-authenticate for security
+      // Developer must re-authenticate for security
       AuthState.clear();
     } else if (role === 'client' || role === 'cashier') {
       if (user.storeId) {
@@ -1135,6 +1100,9 @@ document.addEventListener('DOMContentLoaded', () => {
       }
     }
   }
+
+  // Ensure role picker is the default state of the auth screen
+  unifiedBackToRoles();
 
   // Add store-switch button to customer panel
   setTimeout(() => {
@@ -1166,3 +1134,177 @@ function patchCustomerCartSave() {
   }
 }
 document.addEventListener('DOMContentLoaded', () => setTimeout(patchCustomerCartSave, 100));
+
+/* ============================================================
+   SIGNUP HINT — show "Don't have an account?" on relevant roles
+   ============================================================ */
+(function _patchUnifiedSelectRoleForHint() {
+  const _orig = window.unifiedSelectRole;
+  window.unifiedSelectRole = function(role) {
+    _orig.apply(this, arguments);
+    const hint    = document.getElementById('loginSignupHint');
+    const hintTxt = document.getElementById('loginSignupHintText');
+    const hintBtn = document.getElementById('loginSignupHintBtn');
+    if (!hint) return;
+    if (role === 'customer') {
+      // Customer already has the tab bar (Log In / Sign Up); still show a subtle link
+      hint.classList.remove('hidden');
+      if (hintTxt) hintTxt.textContent = 'New here?';
+      if (hintBtn) { hintBtn.textContent = 'Create a customer account'; hintBtn.onclick = () => unifiedSwitchTab('register'); }
+    } else if (role === 'client') {
+      hint.classList.remove('hidden');
+      if (hintTxt) hintTxt.textContent = "Don't have a store account yet?";
+      if (hintBtn) { hintBtn.textContent = 'Register your store'; hintBtn.onclick = () => openRegisterModal('client'); }
+    } else if (role === 'cashier') {
+      hint.classList.remove('hidden');
+      if (hintTxt) hintTxt.textContent = 'Cashier accounts are created by your store owner.';
+      if (hintBtn) { hintBtn.textContent = 'Learn more'; hintBtn.onclick = () => toast('Ask your store manager (client) to add your cashier account from their Client panel.', 'info'); }
+    } else {
+      hint.classList.add('hidden');
+    }
+  };
+})();
+
+/* ============================================================
+   JOIN DASH UP — Registration Modal
+   ============================================================ */
+let _regModalRole = 'customer';
+
+function openRegisterModal(role) {
+  _regModalRole = role || 'customer';
+  const modal = document.getElementById('registerModal');
+  if (!modal) return;
+  modal.classList.remove('hidden');
+  switchRegisterRole(_regModalRole);
+  // Hide the role tabs if opened directly from a specific role context
+  const tabs = document.getElementById('regRoleTabs');
+  if (tabs) tabs.classList.remove('hidden');
+}
+
+function closeRegisterModal() {
+  document.getElementById('registerModal')?.classList.add('hidden');
+  // Clear form fields
+  ['regMFullName','regMEmail','regMPass','regMPhone',
+   'regCName','regCStoreName','regCEmail','regCPass','regCPhone','regCLocation'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.value = '';
+  });
+}
+
+function switchRegisterRole(role) {
+  _regModalRole = role;
+  // Tab active states
+  document.getElementById('regTabCustomer')?.classList.toggle('active', role === 'customer');
+  document.getElementById('regTabClient')?.classList.toggle('active', role === 'client');
+  // Show correct form
+  document.getElementById('regFormCustomer')?.classList.toggle('hidden', role !== 'customer');
+  document.getElementById('regFormClient')?.classList.toggle('hidden', role !== 'client');
+  // Update subtitle
+  const sub = document.getElementById('regModalSubtitle');
+  if (sub) {
+    sub.textContent = role === 'client'
+      ? 'Register your store on Dash Up'
+      : 'Create a customer account';
+  }
+}
+
+function toggleRegPass(inputId) {
+  const el = document.getElementById(inputId);
+  if (el) el.type = el.type === 'password' ? 'text' : 'password';
+}
+
+/* ── Customer registration via modal ── */
+function registerModalCustomer() {
+  const name  = document.getElementById('regMFullName')?.value.trim();
+  const email = document.getElementById('regMEmail')?.value.trim().toLowerCase();
+  const pass  = document.getElementById('regMPass')?.value;
+  const phone = document.getElementById('regMPhone')?.value.trim();
+
+  if (!name || !email || !pass) { toast('Name, email, and password are required', 'warning'); return; }
+  if (!email.includes('@'))     { toast('Please enter a valid email address', 'warning'); return; }
+  if (pass.length < 6)          { toast('Password must be at least 6 characters', 'warning'); return; }
+
+  const newCustomer = {
+    id: 'GC' + Date.now().toString().slice(-6),
+    name, email, password: pass, phone,
+    joined: new Date().toISOString().slice(0, 10),
+    totalOrders: 0, points: 0
+  };
+
+  const _finish = (customer) => {
+    try {
+      const existing = JSON.parse(localStorage.getItem('sc_global_customers') || '[]');
+      if (existing.find(c => c.email === customer.email)) { toast('An account with this email already exists', 'error'); return; }
+      existing.push(customer);
+      localStorage.setItem('sc_global_customers', JSON.stringify(existing));
+    } catch(e) {}
+    closeRegisterModal();
+    AuthState.set('customer', { ...customer, role: 'customer' }, null);
+    toast(`Welcome to Dash Up, ${customer.name}! 🎉`, 'success');
+    showStoreSelector(customer);
+  };
+
+  if (typeof DB !== 'undefined') {
+    DB.loginCustomer(email, pass).then(exists => {
+      if (exists) { toast('An account with this email already exists', 'error'); return; }
+      DB.registerCustomer(newCustomer).then(created => _finish(created || newCustomer)).catch(() => _finish(newCustomer));
+    }).catch(() => _finish(newCustomer));
+  } else {
+    const customers = JSON.parse(localStorage.getItem('sc_global_customers') || '[]');
+    if (customers.find(c => c.email === email)) { toast('An account with this email already exists', 'error'); return; }
+    _finish(newCustomer);
+  }
+}
+
+/* ── Client / Store Owner registration via modal ── */
+function registerModalClient() {
+  const ownerName  = document.getElementById('regCName')?.value.trim();
+  const storeName  = document.getElementById('regCStoreName')?.value.trim();
+  const email      = document.getElementById('regCEmail')?.value.trim().toLowerCase();
+  const pass       = document.getElementById('regCPass')?.value;
+  const phone      = document.getElementById('regCPhone')?.value.trim();
+  const location   = document.getElementById('regCLocation')?.value.trim();
+  const plan       = document.getElementById('regCPlan')?.value || 'basic';
+
+  if (!ownerName || !storeName || !email || !pass) {
+    toast('Name, store name, email, and password are required', 'warning'); return;
+  }
+  if (!email.includes('@')) { toast('Please enter a valid email address', 'warning'); return; }
+  if (pass.length < 6)      { toast('Password must be at least 6 characters', 'warning'); return; }
+
+  // Generate a pending retailer entry
+  const storeId = storeName.toLowerCase().replace(/\s+/g, '_').replace(/[^a-z0-9_]/g, '').slice(0, 20) + '_' + Date.now().toString().slice(-4);
+  const newRetailer = {
+    id: storeId,
+    clientName: ownerName,
+    storeName,
+    email,
+    password: pass,
+    phone,
+    location,
+    plan,
+    accessCode: storeName.toLowerCase().replace(/\s+/g,''),
+    subscriptionStart: new Date().toISOString().slice(0,10),
+    subscriptionEnd: new Date(Date.now() + 30*24*60*60*1000).toISOString().slice(0,10),
+    status: 'pending',   // Developer must approve
+    monthlyRevenue: []
+  };
+
+  // Save to localStorage as pending + attempt Supabase
+  const _savePending = () => {
+    try {
+      const pending = JSON.parse(localStorage.getItem('sc_pending_retailers') || '[]');
+      if (pending.find(r => r.email === email)) { toast('A store with this email is already registered', 'error'); return; }
+      pending.push(newRetailer);
+      localStorage.setItem('sc_pending_retailers', JSON.stringify(pending));
+    } catch(e) {}
+    closeRegisterModal();
+    toast(`Store registration submitted! ✅ A Developer will review and activate "${storeName}" shortly.`, 'success', 6000);
+  };
+
+  if (typeof DB !== 'undefined') {
+    DB.addRetailer(newRetailer).then(() => _savePending()).catch(() => _savePending());
+  } else {
+    _savePending();
+  }
+}

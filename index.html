@@ -46,9 +46,157 @@
 <div id="toast-container"></div>
 
 <!-- ═══════════════════════════════════════════
-     AUTH SCREEN
+     AUTH SCREEN — Unified
 ═══════════════════════════════════════════ -->
-<div id="auth-screen" class="hidden"></div>
+<div id="auth-screen">
+  <!-- UNIFIED AUTH CARD -->
+  <div class="auth-container">
+    <div class="auth-card unified-auth-card">
+
+      <!-- Logo / branding — hidden when a login panel is active -->
+      <div class="unified-auth-logo" id="unifiedAuthLogo">
+        <img src="assets/logo.png" alt="Dash Up" onerror="this.style.display='none'" />
+      </div>
+
+      <!-- ── STEP 1: Role picker (shown first) ── -->
+      <div id="unifiedRolePicker">
+        <p class="unified-section-label">How do you use Dash Up?</p>
+
+        <div class="unified-role-group">
+          <p class="unified-group-label">Staff &amp; Management</p>
+          <button class="unified-role-btn dev-role" onclick="unifiedSelectRole('developer')">
+            <svg class="role-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
+            <span class="role-label">Developer</span>
+            <svg class="role-chevron" viewBox="0 0 24 24"><path d="M9 18l6-6-6-6"/></svg>
+          </button>
+          <button class="unified-role-btn client-role" onclick="unifiedSelectRole('client')">
+            <svg class="role-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"></path><line x1="3" y1="6" x2="21" y2="6"></line><path d="M16 10a4 4 0 0 1-8 0"></path></svg>
+            <span class="role-label">Client / Store Owner</span>
+            <svg class="role-chevron" viewBox="0 0 24 24"><path d="M9 18l6-6-6-6"/></svg>
+          </button>
+          <button class="unified-role-btn cashier-role" onclick="unifiedSelectRole('cashier')">
+            <svg class="role-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="1" x2="12" y2="23"></line><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path></svg>
+            <span class="role-label">Cashier</span>
+            <svg class="role-chevron" viewBox="0 0 24 24"><path d="M9 18l6-6-6-6"/></svg>
+          </button>
+        </div>
+
+        <div class="unified-role-group" style="margin-top:16px">
+          <p class="unified-group-label">Shopping</p>
+          <button class="unified-role-btn customer-role" onclick="unifiedSelectRole('customer')">
+            <svg class="role-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="21" r="1"></circle><circle cx="20" cy="21" r="1"></circle><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"></path></svg>
+            <span class="role-label">Customer Account</span>
+            <svg class="role-chevron" viewBox="0 0 24 24"><path d="M9 18l6-6-6-6"/></svg>
+          </button>
+          <button class="unified-role-btn guest-role" onclick="continueAsGuestFromAuth()">
+            <svg class="role-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="2" y1="12" x2="22" y2="12"></line><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path></svg>
+            <span class="role-label">Browse as Guest</span>
+            <svg class="role-chevron" viewBox="0 0 24 24"><path d="M9 18l6-6-6-6"/></svg>
+          </button>
+        </div>
+
+        <!-- Join Dash Up footer — visible on role picker -->
+        <div class="join-dashup-footer">
+          <span>Don't have an account yet?</span>
+          <button class="join-dashup-link" onclick="openRegisterModal('customer')">Join Dash Up</button>
+        </div>
+      </div>
+
+      <!-- ── STEP 2: Login / Register form (hidden until role picked) ── -->
+      <div id="unifiedAuthForm" class="hidden">
+
+        <!-- Back button -->
+        <button class="auth-back-btn" onclick="unifiedBackToRoles()">← Back</button>
+
+        <!-- Role header (icon + title, injected by JS) -->
+        <div id="unifiedRoleHeader" class="unified-role-header"></div>
+
+        <!-- Tab switcher — only shown for 'customer' role -->
+        <div id="unifiedTabBar" class="unified-tab-bar hidden">
+          <button id="tabLogin"    class="unified-tab active" onclick="unifiedSwitchTab('login')">Log In</button>
+          <button id="tabRegister" class="unified-tab"        onclick="unifiedSwitchTab('register')">Sign Up</button>
+        </div>
+
+        <!-- LOGIN FORM -->
+        <div id="unifiedLoginForm">
+          <!-- Developer: PIN only -->
+          <div id="devPinGroup" class="hidden">
+            <label class="form-label">Developer PIN</label>
+            <input class="form-input pin-input" id="devPinInput" type="password"
+                   placeholder="······" maxlength="6"
+                   style="text-align:center;letter-spacing:0.3em;font-family:var(--font-digital);font-size:1.4rem"
+                   onkeydown="if(event.key==='Enter')unifiedAttemptLogin()"
+                   autocomplete="off" />
+          </div>
+
+          <!-- Client / Cashier / Customer: email + password -->
+          <div id="emailPwGroup" class="hidden">
+            <div class="form-group">
+              <label class="form-label" id="unifiedEmailLabel">Email</label>
+              <input class="form-input" id="authEmail" type="text"
+                     placeholder="" autocomplete="username"
+                     onkeydown="if(event.key==='Enter')document.getElementById('authPassword').focus()" />
+              <small id="unifiedEmailHint" class="form-hint"></small>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Password</label>
+              <div style="position:relative">
+                <input class="form-input" id="authPassword" type="password"
+                       placeholder="Enter password" autocomplete="current-password"
+                       onkeydown="if(event.key==='Enter')unifiedAttemptLogin()" />
+                <button onclick="togglePasswordVisibility()"
+                        style="position:absolute;right:12px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;color:var(--gray-400);font-size:16px"
+                        title="Show/hide password">👁</button>
+              </div>
+            </div>
+          </div>
+
+          <button class="btn btn-primary w-full btn-lg" id="unifiedLoginBtn" onclick="unifiedAttemptLogin()">
+            Log In
+          </button>
+
+          <!-- Contextual signup hint — shown for customer & client roles -->
+          <div id="loginSignupHint" class="login-signup-hint hidden">
+            <span id="loginSignupHintText">Don't have an account?</span>
+            <button id="loginSignupHintBtn" class="join-dashup-link" onclick="openRegisterModal(_unifiedCurrentRole)">Sign up</button>
+          </div>
+        </div>
+
+        <!-- REGISTER FORM (customer only) -->
+        <div id="unifiedRegisterForm" class="hidden">
+          <div class="form-group" style="margin-bottom:12px">
+            <label class="form-label">Full Name *</label>
+            <input class="form-input" id="regFullName" placeholder="Juan Dela Cruz" />
+          </div>
+          <div class="form-group" style="margin-bottom:12px">
+            <label class="form-label">Email Address *</label>
+            <input class="form-input" id="regGmail" type="email" placeholder="juan@gmail.com" />
+          </div>
+          <div class="form-group" style="margin-bottom:12px">
+            <label class="form-label">Password *</label>
+            <input class="form-input" id="regPass" type="password" placeholder="Create a password" />
+          </div>
+          <div class="form-group" style="margin-bottom:20px">
+            <label class="form-label">Phone Number</label>
+            <input class="form-input" id="regPhone2" placeholder="09XXXXXXXXX" />
+          </div>
+          <button class="btn btn-primary w-full btn-lg" onclick="registerCustomerAccount()">
+            Create Account
+          </button>
+        </div>
+
+        <!-- Demo accounts (injected by JS into this container) -->
+        <div id="unifiedDemoAccounts" class="auth-demo-accounts" style="margin-top:20px"></div>
+
+      </div>
+      <!-- /#unifiedAuthForm -->
+
+    </div>
+    <!-- /.auth-card -->
+  </div>
+  <!-- /.auth-container -->
+</div>
+<!-- /#auth-screen -->
 
 <!-- ═══════════════════════════════════════════
      STORE SELECTOR (Customer)
@@ -116,40 +264,7 @@
   </div>
 </div>
 
-<!-- ═══════════════════════════════════════════
-     ACCESS SELECTOR
-═══════════════════════════════════════════ -->
-<div id="view-selector" class="access-selector">
-  <img src="assets/logo.png" alt="Dash Up" class="selector-logo"
-       onerror="this.style.display='none'" />
-  <h1>DASH UP</h1>
-  <p class="lead">v3.0 — Select your access level to continue</p>
-  <div class="access-grid">
-    <div class="access-card blue-accent" onclick="showDevLogin()" tabindex="0" role="button">
-      <img src="assets/Developer_Icon.png" alt="Developer" class="access-card-icon-img" onerror="this.style.display='none'" />
-      <div class="access-card-title">Developer</div>
-      <div class="access-card-desc">Manage retailers, subscriptions &amp; platform overview</div>
-    </div>
-    <div class="access-card green-accent" onclick="showAuthScreen('client')" tabindex="0" role="button">
-      <img src="assets/Client_Icon.png" alt="Client" class="access-card-icon-img" onerror="this.style.display='none'" />
-      <div class="access-card-title">Client</div>
-      <div class="access-card-desc">Store dashboard, inventory &amp; cashier management</div>
-    </div>
-    <div class="access-card cashier-accent" onclick="showAuthScreen('cashier')" tabindex="0" role="button">
-      <img src="assets/Cashier_Icon.png" alt="Cashier" class="access-card-icon-img" onerror="this.style.display='none'" />
-      <div class="access-card-title">Cashier</div>
-      <div class="access-card-desc">Point of sale, checkout &amp; barcode scanning</div>
-    </div>
-    <div class="access-card customer-accent" onclick="showAuthScreen('customer')" tabindex="0" role="button">
-      <img src="assets/Customer_Icon.png" alt="Customer" class="access-card-icon-img" onerror="this.style.display='none'" />
-      <div class="access-card-title">Customer</div>
-      <div class="access-card-desc">Browse stores, add to cart &amp; checkout QR</div>
-    </div>
-  </div>
-  <div style="margin-top: 28px; display:flex; gap:10px; justify-content:center;">
-    <button class="btn btn-ghost btn-sm" onclick="toggleTheme()">🌓 Toggle Theme</button>
-  </div>
-</div>
+<!-- #view-selector removed — replaced by unified #auth-screen -->
 
 <!-- ═══════════════════════════════════════════
      DEVELOPER PANEL
@@ -1371,7 +1486,8 @@
 <!-- Core view switcher -->
 <script>
   function showView(name) {
-    const ALL = ['selector','dev','client','cashier','customer'];
+    // 'selector' is no longer a view-* element; handled by navigateTo directly
+    const ALL = ['dev','client','cashier','customer'];
     ALL.forEach(v => {
       const el = document.getElementById('view-' + v);
       if (el) el.classList.toggle('hidden', v !== name);
@@ -1380,10 +1496,14 @@
 
   function navigateTo(view) {
     if (view === 'selector') {
-      ['auth-screen','store-selector-screen'].forEach(id => {
-        document.getElementById(id)?.classList.add('hidden');
+      // Hide all screens and panel views
+      document.getElementById('store-selector-screen')?.classList.add('hidden');
+      ['dev','client','cashier','customer'].forEach(v => {
+        document.getElementById('view-' + v)?.classList.add('hidden');
       });
-      showView('selector');
+      // Show unified auth screen at role-picker step
+      if (typeof unifiedBackToRoles === 'function') unifiedBackToRoles();
+      document.getElementById('auth-screen')?.classList.remove('hidden');
       return;
     }
     if (view === 'dev') { enterDev(); return; }
@@ -1406,7 +1526,8 @@
   }
 
   window.addEventListener('DOMContentLoaded', () => {
-    showView('selector');
+    // auth-screen is the new landing — show it after splash
+    document.getElementById('auth-screen')?.classList.remove('hidden');
   });
 
   const DEV_PIN = '363738';
@@ -2058,5 +2179,111 @@ document.addEventListener('DOMContentLoaded', () => {
 <script src="admin.js"></script>
 <script src="customer.js"></script>
 
-</body>
-</html>
+<!-- ═══════════════════════════════════════════
+     JOIN DASH UP — Registration Modal
+═══════════════════════════════════════════ -->
+<div id="registerModal" class="reg-modal-overlay hidden" onclick="if(event.target===this)closeRegisterModal()">
+  <div class="reg-modal-card">
+
+    <button class="reg-modal-close" onclick="closeRegisterModal()" title="Close">✕</button>
+
+    <div class="reg-modal-logo">
+      <img src="assets/logo.png" alt="Dash Up" onerror="this.style.display='none'" />
+      <div class="reg-modal-brand">Join Dash Up</div>
+      <div id="regModalSubtitle" class="reg-modal-sub">Create your account</div>
+    </div>
+
+    <!-- Role tabs -->
+    <div class="reg-role-tabs" id="regRoleTabs">
+      <button class="reg-role-tab active" id="regTabCustomer" onclick="switchRegisterRole('customer')">
+        <svg class="role-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="21" r="1"></circle><circle cx="20" cy="21" r="1"></circle><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"></path></svg>
+        <span>Customer</span>
+      </button>
+      <button class="reg-role-tab" id="regTabClient" onclick="switchRegisterRole('client')">
+        <svg class="role-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"></path><line x1="3" y1="6" x2="21" y2="6"></line><path d="M16 10a4 4 0 0 1-8 0"></path></svg>
+        <span>Store Owner</span>
+      </button>
+    </div>
+
+    <!-- CUSTOMER REGISTRATION -->
+    <div id="regFormCustomer" class="reg-form-section">
+      <div class="form-group" style="margin-bottom:12px">
+        <label class="form-label">Full Name *</label>
+        <input class="form-input" id="regMFullName" placeholder="Juan Dela Cruz" />
+      </div>
+      <div class="form-group" style="margin-bottom:12px">
+        <label class="form-label">Email Address *</label>
+        <input class="form-input" id="regMEmail" type="email" placeholder="juan@gmail.com" />
+      </div>
+      <div class="form-group" style="margin-bottom:12px">
+        <label class="form-label">Password *</label>
+        <div style="position:relative">
+          <input class="form-input" id="regMPass" type="password" placeholder="Create a password" />
+          <button onclick="toggleRegPass('regMPass')" style="position:absolute;right:12px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;color:var(--gray-400);font-size:15px" title="Show/hide">👁</button>
+        </div>
+      </div>
+      <div class="form-group" style="margin-bottom:20px">
+        <label class="form-label">Phone Number</label>
+        <input class="form-input" id="regMPhone" placeholder="09XXXXXXXXX" />
+      </div>
+      <button class="btn btn-primary w-full btn-lg" onclick="registerModalCustomer()">
+        Create Customer Account
+      </button>
+      <p class="reg-modal-note">Shop across all Dash Up stores, earn loyalty points, and manage wishlists.</p>
+    </div>
+
+    <!-- CLIENT / STORE OWNER REGISTRATION -->
+    <div id="regFormClient" class="reg-form-section hidden">
+      <div class="form-group" style="margin-bottom:12px">
+        <label class="form-label">Owner / Contact Name *</label>
+        <input class="form-input" id="regCName" placeholder="Maria Santos" />
+      </div>
+      <div class="form-group" style="margin-bottom:12px">
+        <label class="form-label">Store Name *</label>
+        <input class="form-input" id="regCStoreName" placeholder="e.g. Santos Sari-Sari" />
+      </div>
+      <div class="form-group" style="margin-bottom:12px">
+        <label class="form-label">Store Email *</label>
+        <input class="form-input" id="regCEmail" type="email" placeholder="storename@dashup.pro" />
+        <small class="form-hint">This will be your login email</small>
+      </div>
+      <div class="form-group" style="margin-bottom:12px">
+        <label class="form-label">Password *</label>
+        <div style="position:relative">
+          <input class="form-input" id="regCPass" type="password" placeholder="Create a secure password" />
+          <button onclick="toggleRegPass('regCPass')" style="position:absolute;right:12px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;color:var(--gray-400);font-size:15px" title="Show/hide">👁</button>
+        </div>
+      </div>
+      <div class="form-group" style="margin-bottom:12px">
+        <label class="form-label">Phone Number</label>
+        <input class="form-input" id="regCPhone" placeholder="09XXXXXXXXX" />
+      </div>
+      <div class="form-group" style="margin-bottom:12px">
+        <label class="form-label">Location / Address</label>
+        <input class="form-input" id="regCLocation" placeholder="Batangas City, CALABARZON" />
+      </div>
+      <div class="form-group" style="margin-bottom:20px">
+        <label class="form-label">Subscription Plan</label>
+        <select class="form-select" id="regCPlan">
+          <option value="basic">Basic — ₱1,499 / month</option>
+          <option value="pro" selected>Pro — ₱3,999 / month</option>
+          <option value="premium">Premium — ₱6,499 / month</option>
+        </select>
+      </div>
+      <button class="btn btn-primary w-full btn-lg" onclick="registerModalClient()">
+        Register Store
+      </button>
+      <p class="reg-modal-note">
+        ⚠️ After registration, a Developer will review and activate your store. You may add cashier accounts from your Client panel once activated.<br><br>
+        <strong>Only clients (store owners) can create cashier accounts</strong> — via their Client panel → Cashier Management.
+      </p>
+    </div>
+
+    <!-- Already have an account -->
+    <div class="reg-modal-footer">
+      Already have an account?
+      <button class="join-dashup-link" onclick="closeRegisterModal()">Log in</button>
+    </div>
+
+  </div>
+</div>

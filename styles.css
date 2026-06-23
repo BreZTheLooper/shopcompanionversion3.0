@@ -10,28 +10,30 @@
 
 /* ── CSS Tokens ── */
 :root {
-  --bg:           #dde6f3;
-  --bg-2:         #c9d8ed;
-  --bg-3:         #b8cadf;
+  /* ── Green Theme (based on #16734A / #1C1C1C / #FFFFFF / #C3EADF) ── */
+  --bg:           #e8f5ef;
+  --bg-2:         #d5edE3;
+  --bg-3:         #c3eadf;
   --surface:      #ffffff;
-  --surface-2:    #f0f5fb;
-  --surface-3:    #e4edf8;
-  --border:       rgba(30,80,160,0.12);
-  --border-strong:#c2d4e8;
-  --text:         #0f1e38;
-  --text-2:       #2d4a70;
-  --text-3:       #3d5f84;   /* was #5a7a9e — lifted to 4.6:1 on white */
-  --text-muted:   #5c7a96;   /* was #8aa5c2 — lifted to 4.5:1 on white */
-  --blue:         #1a5fd4;
-  --blue-light:   #4d8fff;
-  --blue-pale:    #dce8ff;
-  --green:        #0a8a56;   /* was #10a96b — 4.6:1 on green-pale */
-  --green-pale:   #d4f5e8;
-  --red:          #c8243a;   /* was #e8364a — 4.7:1 on red-pale */
+  --surface-2:    #f2faf6;
+  --surface-3:    #e4f5ee;
+  --border:       rgba(22,115,74,0.14);
+  --border-strong:#a8d9c3;
+  --text:         #0e1f18;
+  --text-2:       #1c3d2e;
+  --text-3:       #2e5c45;
+  --text-muted:   #4a7a62;
+  /* primary = green */
+  --blue:         #16734a;   /* repurposed as primary action color */
+  --blue-light:   #28a06a;
+  --blue-pale:    #c3eadf;
+  --green:        #16734a;
+  --green-pale:   #c3eadf;
+  --red:          #c8243a;
   --red-pale:     #ffe0e4;
-  --yellow:       #8a6000;   /* was #d4a017 — 4.6:1 on yellow-pale */
+  --yellow:       #8a6000;
   --yellow-pale:  #fef3d0;
-  --purple:       #5435c8;   /* was #6c4de8 — 4.6:1 on purple-pale */
+  --purple:       #5435c8;
   --purple-pale:  #ede8ff;
 
   /* ── Typography ──
@@ -52,10 +54,10 @@
   --radius-lg:   16px;
   --radius-xl:   24px;
 
-  --shadow-sm:   0 1px 3px rgba(15,30,56,0.08), 0 1px 2px rgba(15,30,56,0.04);
-  --shadow-md:   0 4px 16px rgba(15,30,56,0.10), 0 2px 6px rgba(15,30,56,0.06);
-  --shadow-lg:   0 8px 32px rgba(15,30,56,0.12), 0 4px 12px rgba(15,30,56,0.07);
-  --shadow-blue: 0 4px 20px rgba(26,95,212,0.25);
+  --shadow-sm:   0 1px 3px rgba(14,31,24,0.08), 0 1px 2px rgba(14,31,24,0.04);
+  --shadow-md:   0 4px 16px rgba(14,31,24,0.10), 0 2px 6px rgba(14,31,24,0.06);
+  --shadow-lg:   0 8px 32px rgba(14,31,24,0.12), 0 4px 12px rgba(14,31,24,0.07);
+  --shadow-blue: 0 4px 20px rgba(22,115,74,0.30);
 
   --logo-sidebar:60px;
   --sidebar-w:   260px;
@@ -65,20 +67,20 @@
 
 /* ── Dark mode override ── */
 .dark-theme {
-  --bg:           #0a0f1e;
-  --bg-2:         #111827;
-  --bg-3:         #1a2340;
-  --surface:      #151e35;
-  --surface-2:    #1c2745;
-  --surface-3:    #243055;
-  --border:       rgba(255,255,255,0.07);
-  --border-strong:rgba(255,255,255,0.12);
-  --text:         #e8f0fc;
-  --text-2:       #a8bcda;
-  --text-3:       #8aabcf;   /* was #6a88ae — lifted to 4.6:1 on #151e35 */
-  --text-muted:   #6a8dae;   /* was #4a6585 — lifted to 3.2:1 on #151e35 (large/UI text only) */
-  --blue-pale:    rgba(26,95,212,0.15);
-  --green-pale:   rgba(16,169,107,0.12);
+  --bg:           #080f0c;
+  --bg-2:         #0d1a13;
+  --bg-3:         #12221a;
+  --surface:      #111d17;
+  --surface-2:    #162a1f;
+  --surface-3:    #1c3427;
+  --border:       rgba(195,234,223,0.08);
+  --border-strong:rgba(195,234,223,0.14);
+  --text:         #e4f5ee;
+  --text-2:       #a8d9c3;
+  --text-3:       #7abfa3;
+  --text-muted:   #5a9a80;
+  --blue-pale:    rgba(22,115,74,0.18);
+  --green-pale:   rgba(22,115,74,0.18);
   --red-pale:     rgba(232,54,74,0.12);
   --yellow-pale:  rgba(212,160,23,0.12);
   --purple-pale:  rgba(108,77,232,0.12);
@@ -89,30 +91,27 @@
 
 /* ── Light mode improvements (higher contrast / readability) ── */
 .light-theme {
-  /* stronger background contrast while keeping the soft palette */
-  --bg:           #e9f3fb; /* slightly brighter than original */
-  --bg-2:         #dbe8f6;
-  --bg-3:         #cddfee;
-  --surface:      #ffffff; /* keep white cards */
-  --surface-2:    #f6f9fc; /* subtle off-white for panels */
-  --surface-3:    #eef6fd;
-  --border:       rgba(15,30,56,0.08);
-  --border-strong:rgba(15,30,56,0.12);
+  --bg:           #eef8f3;
+  --bg-2:         #dff0e8;
+  --bg-3:         #c3eadf;
+  --surface:      #ffffff;
+  --surface-2:    #f5faf7;
+  --surface-3:    #eaf5ef;
+  --border:       rgba(14,31,24,0.09);
+  --border-strong:rgba(14,31,24,0.15);
 
-  /* darker, more readable text tones */
-  --text:         #071326; /* primary copy */
-  --text-2:       #18324a; /* headings / emphasis */
-  --text-3:       #2e4d6a; /* secondary copy — 5.1:1 on white */
-  --text-muted:   #4a6a87; /* subdued but readable — 4.6:1 on white */
+  --text:         #071410;
+  --text-2:       #163325;
+  --text-3:       #265c42;
+  --text-muted:   #3d7358;
 
-  /* slightly stronger shadows for clearer separation */
-  --shadow-sm:   0 4px 12px rgba(15,30,56,0.06);
-  --shadow-md:   0 8px 28px rgba(15,30,56,0.10);
-  --shadow-lg:   0 12px 40px rgba(15,30,56,0.12);
+  --shadow-sm:   0 4px 12px rgba(14,31,24,0.06);
+  --shadow-md:   0 8px 28px rgba(14,31,24,0.10);
+  --shadow-lg:   0 12px 40px rgba(14,31,24,0.12);
 }
 
 /* Light-theme specific tweaks for high-impact UI elements */
-html.light-theme .splash-overlay { background: linear-gradient(180deg,#eaf4fb 0%, #dfeefb 100%); }
+html.light-theme .splash-overlay { background: linear-gradient(180deg,#d5ede3 0%, #c3eadf 100%); }
 html.light-theme .access-card { box-shadow: var(--shadow-sm); border: 1.2px solid var(--border); }
 html.light-theme .access-card-title { color: var(--text-2); }
 html.light-theme .access-card-desc  { color: var(--text-3); }
@@ -130,7 +129,7 @@ html.light-theme tbody td             { color: var(--text);   }
 html.light-theme thead th             { color: var(--text-2); }
 html.light-theme .nav-item            { color: var(--text-2); }
 html.light-theme .nav-item:hover      { color: var(--text);   }
-html.light-theme .nav-item.active     { color: var(--blue);   }
+html.light-theme .nav-item.active     { color: var(--green);  }
 html.light-theme .logo-title          { color: var(--text);   }
 html.light-theme .revenue-row         { color: var(--text);   }
 html.light-theme .low-stock-name      { color: var(--text);   }
@@ -181,43 +180,43 @@ html.light-theme .btn-primary, html.light-theme .btn-success, html.light-theme .
    light background. This block re-applies every light token at body scope,
    defeating the dark-theme override whenever light mode is active. ── */
 html.light-theme body.dark-theme {
-  --bg:            #e9f3fb;
-  --bg-2:          #dbe8f6;
-  --bg-3:          #cddfee;
+  --bg:            #eef8f3;
+  --bg-2:          #dff0e8;
+  --bg-3:          #c3eadf;
   --surface:       #ffffff;
-  --surface-2:     #f6f9fc;
-  --surface-3:     #eef6fd;
-  --border:        rgba(15,30,56,0.08);
-  --border-strong: rgba(15,30,56,0.18);
-  --text:          #071326;
-  --text-2:        #18324a;
-  --text-3:        #2e4d6a;
-  --text-muted:    #4a6a87;
-  --blue:          #1a5fd4;
-  --blue-light:    #4d8fff;
-  --blue-pale:     #dce8ff;
-  --green:         #0a8a56;
-  --green-pale:    #d4f5e8;
+  --surface-2:     #f5faf7;
+  --surface-3:     #eaf5ef;
+  --border:        rgba(14,31,24,0.09);
+  --border-strong: rgba(14,31,24,0.15);
+  --text:          #071410;
+  --text-2:        #163325;
+  --text-3:        #265c42;
+  --text-muted:    #3d7358;
+  --blue:          #16734a;
+  --blue-light:    #28a06a;
+  --blue-pale:     #c3eadf;
+  --green:         #16734a;
+  --green-pale:    #c3eadf;
   --red:           #c8243a;
   --red-pale:      #ffe0e4;
   --yellow:        #8a6000;
   --yellow-pale:   #fef3d0;
   --purple:        #5435c8;
   --purple-pale:   #ede8ff;
-  --shadow-sm:     0 4px 12px rgba(15,30,56,0.06);
-  --shadow-md:     0 8px 28px rgba(15,30,56,0.10);
-  --shadow-lg:     0 12px 40px rgba(15,30,56,0.12);
-  --shadow-blue:   0 4px 20px rgba(26,95,212,0.25);
+  --shadow-sm:     0 4px 12px rgba(14,31,24,0.06);
+  --shadow-md:     0 8px 28px rgba(14,31,24,0.10);
+  --shadow-lg:     0 12px 40px rgba(14,31,24,0.12);
+  --shadow-blue:   0 4px 20px rgba(22,115,74,0.28);
   /* legacy aliases */
-  --white:         #071326;
-  --black:         #e9f3fb;
-  --gray-100:      #eef6fd;
-  --gray-200:      #18324a;
-  --gray-300:      #2e4d6a;
-  --gray-400:      #2e4d6a;
-  --gray-500:      #4a6a87;
-  --gray-600:      #eef6fd;
-  --gray-700:      #f6f9fc;
+  --white:         #071410;
+  --black:         #eef8f3;
+  --gray-100:      #eaf5ef;
+  --gray-200:      #163325;
+  --gray-300:      #265c42;
+  --gray-400:      #265c42;
+  --gray-500:      #3d7358;
+  --gray-600:      #eaf5ef;
+  --gray-700:      #f5faf7;
   --gray-800:      #ffffff;
 }
 
@@ -237,13 +236,13 @@ html.light-theme body.dark-theme {
   --gray-700:    var(--surface-2);
   --gray-800:    var(--surface);
   --blue-light:  var(--blue);
-  --blue-dark:   #1040b0;
+  --blue-dark:   #0d5236;
   --blue-glow:   var(--blue-pale);
-  --green-dark:  #07764a;   /* was #0d8f5a */
-  --yellow-dark: #6a4800;   /* was #a07e00 — deepened for dark-bg use */
-  --red-dark:    #a81e30;   /* was #b02030 */
+  --green-dark:  #0d5236;
+  --yellow-dark: #6a4800;
+  --red-dark:    #a81e30;
   --font-subhead: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
-  --shadow-blue: 0 4px 20px rgba(26,95,212,0.25);
+  --shadow-blue: 0 4px 20px rgba(22,115,74,0.30);
   --radius-sm:   6px;
   --radius-md:   10px;
   --radius-lg:   16px;
@@ -289,7 +288,7 @@ a { text-decoration: none; color: inherit; }
    ============================================================ */
 .splash-overlay {
   position: fixed; inset: 0; z-index: 9999;
-  background: var(--blue);
+  background: var(--green);
   display: flex; align-items: center; justify-content: center;
   flex-direction: column; gap: 16px;
   transition: opacity 0.5s ease;
@@ -304,7 +303,7 @@ a { text-decoration: none; color: inherit; }
 }
 
 /* Dark theme variant for a deeper splash background to match screenshot */
-.dark-theme .splash-overlay { background: linear-gradient(180deg, #06070a 0%, #0f1724 60%, #071023 100%); }
+.dark-theme .splash-overlay { background: linear-gradient(180deg, #040a07 0%, #0a1710 60%, #071410 100%); }
 .splash-sub { font-family: var(--font-mono); font-size: 0.8rem; color: rgba(255,255,255,0.7); }
 
 /* Center splash inner content and animate logo */
@@ -313,7 +312,7 @@ a { text-decoration: none; color: inherit; }
   width: 140px; height: 140px;
   border-radius: 14px; /* rounded corners */
   padding: 8px; background: rgba(255,255,255,0.06);
-  box-shadow: 0 10px 36px rgba(0,0,0,0.5), 0 0 20px rgba(26,95,212,0.14) inset;
+  box-shadow: 0 10px 36px rgba(0,0,0,0.5), 0 0 20px rgba(22,115,74,0.14) inset;
   animation: splashLogoFade 3.5s ease-in-out infinite;
 }
 
@@ -340,22 +339,22 @@ a { text-decoration: none; color: inherit; }
 .selector-logo {
   width: 90px; height: 90px; object-fit: contain;
   margin-bottom: 12px;
-  filter: drop-shadow(0 4px 20px rgba(26,95,212,0.2));
+  filter: drop-shadow(0 4px 20px rgba(22,115,74,0.20));
 }
 
 /* Rounded logo with glow and subtle pulsing animation for access selector */
 .access-selector .selector-logo {
   border-radius: 14px; /* rounded corners */
   padding: 8px; background: rgba(255,255,255,0.03);
-  box-shadow: 0 6px 28px rgba(26,95,212,0.18), 0 0 18px rgba(26,95,212,0.08) inset;
+  box-shadow: 0 6px 28px rgba(22,115,74,0.18), 0 0 18px rgba(22,115,74,0.08) inset;
   transform-origin: center center;
   animation: selectorLogoPulse 3.6s ease-in-out infinite;
 }
 
 @keyframes selectorLogoPulse {
-  0%   { transform: scale(1); box-shadow: 0 6px 28px rgba(26,95,212,0.18), 0 0 12px rgba(26,95,212,0.06) inset; }
-  50%  { transform: scale(1.04); box-shadow: 0 10px 42px rgba(26,95,212,0.26), 0 0 26px rgba(26,95,212,0.12) inset; }
-  100% { transform: scale(1); box-shadow: 0 6px 28px rgba(26,95,212,0.18), 0 0 12px rgba(26,95,212,0.06) inset; }
+  0%   { transform: scale(1); box-shadow: 0 6px 28px rgba(22,115,74,0.18), 0 0 12px rgba(22,115,74,0.06) inset; }
+  50%  { transform: scale(1.04); box-shadow: 0 10px 42px rgba(22,115,74,0.28), 0 0 26px rgba(22,115,74,0.12) inset; }
+  100% { transform: scale(1); box-shadow: 0 6px 28px rgba(22,115,74,0.18), 0 0 12px rgba(22,115,74,0.06) inset; }
 }
 
 /* Slightly reduce effect in reduced-motion mode */
@@ -600,7 +599,7 @@ a { text-decoration: none; color: inherit; }
 }
 .form-input:focus {
   border-color: var(--blue);
-  box-shadow: 0 0 0 3px rgba(26,95,212,0.12);
+  box-shadow: 0 0 0 3px rgba(22,115,74,0.12);
 }
 .form-select {
   width: 100%; padding: 9px 12px;
@@ -1048,7 +1047,7 @@ tbody tr { transition: background var(--transition); }
   font-family: var(--font-mono); font-size: 11px;
   background: var(--blue-pale); color: var(--blue);
   padding: 4px 10px; border-radius: var(--radius-sm);
-  border: 1px solid rgba(26,95,212,0.2); letter-spacing: 0.08em;
+  border: 1px solid rgba(22,115,74,0.20); letter-spacing: 0.08em;
 }
 .subscription-bar { margin-top: 14px; padding-top: 14px; border-top: 1px solid var(--border); }
 .sub-bar-label { display: flex; justify-content: space-between; font-size: 11px; color: var(--text-muted); margin-bottom: 6px; }
@@ -1189,51 +1188,51 @@ tbody tr { transition: background var(--transition); }
    ============================================================ */
 
 html.light-theme .sidebar {
-  background: #1a2e4a;
+  background: #0d3d27;
   border-right-color: rgba(0,0,0,0.12);
 }
 
 html.light-theme .sidebar-header {
-  border-bottom-color: rgba(255,255,255,0.10);
+  border-bottom-color: rgba(195,234,223,0.12);
 }
 
 html.light-theme .logo-title {
-  color: #e8f0fc !important;
+  color: #e4f5ee !important;
 }
 
 html.light-theme .logo-role {
-  color: #7eb8f7 !important;
+  color: #7acfac !important;
 }
 
 html.light-theme .nav-item {
-  color: #a8c4e0 !important;
+  color: #90c8ad !important;
 }
 
 html.light-theme .nav-item:hover {
-  background: rgba(255,255,255,0.08) !important;
-  color: #e8f0fc !important;
+  background: rgba(195,234,223,0.10) !important;
+  color: #e4f5ee !important;
 }
 
 html.light-theme .nav-item.active {
-  background: rgba(77,143,255,0.20) !important;
-  color: #7eb8f7 !important;
-  border-color: rgba(77,143,255,0.35) !important;
+  background: rgba(22,115,74,0.20) !important;
+  color: #7acfac !important;
+  border-color: rgba(22,115,74,0.35) !important;
 }
 
 html.light-theme .nav-switch-btn {
-  color: #a8c4e0 !important;
-  border-top-color: rgba(255,255,255,0.10) !important;
+  color: #90c8ad !important;
+  border-top-color: rgba(195,234,223,0.12) !important;
 }
 
 html.light-theme .nav-switch-btn:hover {
-  background: rgba(255,255,255,0.08) !important;
-  color: #e8f0fc !important;
+  background: rgba(195,234,223,0.10) !important;
+  color: #e4f5ee !important;
 }
 
 /* Logout button typically shares nav-switch-btn styling */
 html.light-theme .logout-btn {
   color: #f88 !important;
-  border-top-color: rgba(255,255,255,0.10) !important;
+  border-top-color: rgba(195,234,223,0.12) !important;
 }
 
 html.light-theme .logout-btn:hover {
