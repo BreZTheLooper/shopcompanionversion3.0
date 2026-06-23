@@ -2,7 +2,7 @@
 
 **A multi-store retail intelligence platform** for managing inventory, cashiers, and customer checkout — built as a single-page web app with a Supabase backend.
 
-Live site: [astechsoln.shop](https://astechsoln.shop)
+Live site: [dashup.store](https://dashup.store)
 
 ---
 
@@ -215,7 +215,7 @@ All loaded via CDN — no build step required.
 | `auth.js` | `AUTH_CONFIG`, `STORE_DEFINITIONS`, login/logout for all four role types |
 | `admin.js` | Developer / client / cashier panel rendering and event logic |
 | `customer.js` | Customer browse, cart, shopping lists, rewards, terms gate |
-| `CNAME` | Custom domain — `astechsoln.shop` |
+| `CNAME` | Custom domain — `dashup.store` |
 | `robots.txt` | Allows all crawlers, points to sitemap |
 | `sitemaps.xml` | XML sitemap for search indexing |
 
