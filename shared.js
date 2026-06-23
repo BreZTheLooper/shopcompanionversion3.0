@@ -19,14 +19,30 @@ const Store = {
 /* ============================================================
    SEED DATA — Populated once if store is empty
    ============================================================ */
+/* ── Always-run migration: keeps plan prices in sync regardless of seed version ── */
+function migratePlanPrices() {
+  const PRICES = { PLAN_BASIC: 1499, PLAN_PRO: 3999, PLAN_PREMIUM: 6499 };
+  const plans  = Store.get('subscription_plans');
+  if (!Array.isArray(plans)) return;
+  let changed = false;
+  plans.forEach(p => {
+    if (PRICES[p.id] !== undefined && p.price !== PRICES[p.id]) {
+      p.price = PRICES[p.id];
+      changed = true;
+    }
+  });
+  if (changed) Store.set('subscription_plans', plans);
+}
+migratePlanPrices();
+
 function seedData() {
-  migrateTopSellers(); // runs once even on existing installs (independent of seeded_v4)
-  if (Store.get('seeded_v4')) return;
+  migrateTopSellers(); // runs once even on existing installs (independent of seeded_v5)
+  if (Store.get('seeded_v5')) return;
 
   Store.set('subscription_plans', [
-    { id: 'PLAN_BASIC',   name: 'Basic',   price: 499,  duration: 30, maxProducts: 100, features: ['Inventory', 'Checkout', 'Basic Reports'] },
-    { id: 'PLAN_PRO',     name: 'Pro',     price: 999,  duration: 30, maxProducts: 500, features: ['All Basic', 'Advanced Reports', 'Multi-Cashier', 'Customer QR'] },
-    { id: 'PLAN_PREMIUM', name: 'Premium', price: 1999, duration: 30, maxProducts: -1,  features: ['All Pro', 'API Access', 'Priority Support', 'Custom Branding'] },
+    { id: 'PLAN_BASIC',   name: 'Basic',   price: 1499, duration: 30, maxProducts: 100, features: ['Inventory', 'Checkout', 'Basic Reports'] },
+    { id: 'PLAN_PRO',     name: 'Pro',     price: 3999, duration: 30, maxProducts: 500, features: ['All Basic', 'Advanced Reports', 'Multi-Cashier', 'Customer QR'] },
+    { id: 'PLAN_PREMIUM', name: 'Premium', price: 6499, duration: 30, maxProducts: -1,  features: ['All Pro', 'API Access', 'Priority Support', 'Custom Branding'] },
   ]);
 
   Store.set('retailers', [
@@ -63,7 +79,7 @@ function seedData() {
     ]));
   }
 
-  Store.set('seeded_v4', true);
+  Store.set('seeded_v5', true);
 }
 
 /* ── Top-sellers migration: runs once even on existing installs ── */
@@ -532,12 +548,19 @@ function uid() { return Math.random().toString(36).slice(2, 9).toUpperCase(); }
 /* ============================================================
    THEME TOGGLE
    ============================================================ */
+const _THEME_ICONS = {
+  sun:  '<svg class="theme-icon" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line></svg>',
+  moon: '<svg class="theme-icon" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>'
+};
+
 function setTheme(theme) {
   try { localStorage.setItem('sc_theme', theme); } catch(e) {}
   document.documentElement.classList.toggle('light-theme', theme === 'light');
+  /* dark mode = show sun (click to go light); light mode = show moon (click to go dark) */
+  const iconHtml = theme === 'light' ? _THEME_ICONS.moon : _THEME_ICONS.sun;
   ['themeToggleAdmin','themeToggleCust','themeToggleDev','themeToggleCashier'].forEach(id => {
     const btn = document.getElementById(id);
-    if (btn) btn.textContent = theme === 'light' ? '🌙' : '☀️';
+    if (btn) btn.innerHTML = iconHtml;
   });
 }
 

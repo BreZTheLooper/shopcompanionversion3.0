@@ -28,6 +28,12 @@
   <style>
     .hidden { display: none !important; }
     body, html { height: 100%; }
+    .theme-toggle-btn { display: inline-flex; align-items: center; justify-content: center; padding: 6px; }
+    .theme-icon { display: block; pointer-events: none; }
+    .tab-svg-icon { display: inline-block; vertical-align: middle; flex-shrink: 0; pointer-events: none; position: relative; top: -1px; }
+    .nav-svg-icon { display: block; flex-shrink: 0; pointer-events: none; width: 20px; height: 20px; }
+    .cust-tab { display: inline-flex; align-items: center; gap: 6px; }
+    .cust-bnav-btn { display: flex; flex-direction: column; align-items: center; gap: 3px; }
     .store-select-icon-img {
       width: 90px;
       height: 90px;
@@ -282,19 +288,19 @@
       </div>
       <nav class="sidebar-nav">
         <a class="nav-item active" data-tab="dev-dashboard" onclick="devSwitchTab('dev-dashboard',this)">
-          <span class="nav-icon">📊</span><span class="nav-label">Dashboard</span>
+          <svg class="nav-svg-icon" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"></path><rect x="8" y="2" width="8" height="4" rx="1" ry="1"></rect></svg><span class="nav-label">Dashboard</span>
         </a>
         <a class="nav-item" data-tab="dev-retailers" onclick="devSwitchTab('dev-retailers',this)">
-          <span class="nav-icon">🏢</span><span class="nav-label">Clients</span>
+          <svg class="nav-svg-icon" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="21 8 21 21 3 21 3 8"></polyline><rect x="1" y="3" width="22" height="5"></rect><line x1="10" y1="12" x2="14" y2="12"></line></svg><span class="nav-label">Clients</span>
         </a>
         <a class="nav-item" data-tab="dev-customers" onclick="devSwitchTab('dev-customers',this)">
-          <span class="nav-icon">👥</span><span class="nav-label">Customers</span>
+          <svg class="nav-svg-icon" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg><span class="nav-label">Customers</span>
         </a>
         <a class="nav-item" data-tab="dev-subscriptions" onclick="devSwitchTab('dev-subscriptions',this)">
-          <span class="nav-icon">💳</span><span class="nav-label">Subscriptions</span>
+          <svg class="nav-svg-icon" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="4" width="22" height="16" rx="2" ry="2"></rect><line x1="1" y1="10" x2="23" y2="10"></line></svg><span class="nav-label">Subscriptions</span>
         </a>
         <a class="nav-item" data-tab="dev-stores" onclick="devSwitchTab('dev-stores',this)">
-          <span class="nav-icon">🗂️</span><span class="nav-label">Store Monitor</span>
+          <svg class="nav-svg-icon" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 11 12 14 22 4"></polyline><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"></path></svg><span class="nav-label">Store Monitor</span>
         </a>
       </nav>
       <a class="nav-switch-btn" onclick="navigateTo('selector')">
@@ -307,7 +313,9 @@
 
     <main class="admin-main" id="devMain">
       <div class="admin-top-right">
-        <button class="btn btn-ghost btn-sm" onclick="toggleTheme()">🌓</button>
+        <button class="btn btn-ghost btn-sm theme-toggle-btn" id="themeToggleDev" onclick="toggleTheme()" title="Toggle theme">
+          <svg class="theme-icon" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>
+        </button>
       </div>
 
       <!-- Dev Dashboard -->
@@ -501,22 +509,22 @@
       </div>
       <nav class="sidebar-nav">
         <a class="nav-item active" data-tab="client-dashboard" onclick="clientSwitchTab('client-dashboard',this)">
-          <span class="nav-icon">📊</span><span class="nav-label">Dashboard</span>
+          <svg class="nav-svg-icon" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"></path><rect x="8" y="2" width="8" height="4" rx="1" ry="1"></rect></svg><span class="nav-label">Dashboard</span>
         </a>
         <a class="nav-item" data-tab="client-inventory" onclick="clientSwitchTab('client-inventory',this)">
-          <span class="nav-icon">📦</span><span class="nav-label">Inventory</span>
+          <svg class="nav-svg-icon" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="16.5" y1="9.4" x2="7.5" y2="4.21"></line><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path><polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline><line x1="12" y1="22.08" x2="12" y2="12"></line></svg><span class="nav-label">Inventory</span>
         </a>
         <a class="nav-item" data-tab="client-scan" onclick="clientSwitchTab('client-scan',this)">
-          <span class="nav-icon">📷</span><span class="nav-label">Scan</span>
+          <svg class="nav-svg-icon" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"></path><circle cx="12" cy="13" r="4"></circle></svg><span class="nav-label">Scan</span>
         </a>
         <a class="nav-item" data-tab="client-orders" onclick="clientSwitchTab('client-orders',this)">
-          <span class="nav-icon">📋</span><span class="nav-label">Orders</span>
+          <svg class="nav-svg-icon" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="8" y1="6" x2="21" y2="6"></line><line x1="8" y1="12" x2="21" y2="12"></line><line x1="8" y1="18" x2="21" y2="18"></line><line x1="3" y1="6" x2="3.01" y2="6"></line><line x1="3" y1="12" x2="3.01" y2="12"></line><line x1="3" y1="18" x2="3.01" y2="18"></line></svg><span class="nav-label">Orders</span>
         </a>
         <a class="nav-item" data-tab="client-cashiers" onclick="clientSwitchTab('client-cashiers',this)">
-          <span class="nav-icon">🧾</span><span class="nav-label">Cashiers</span>
+          <svg class="nav-svg-icon" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg><span class="nav-label">Cashiers</span>
         </a>
         <a class="nav-item" data-tab="client-reports" onclick="clientSwitchTab('client-reports',this)">
-          <span class="nav-icon">📈</span><span class="nav-label">Reports</span>
+          <svg class="nav-svg-icon" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"></path></svg><span class="nav-label">Reports</span>
         </a>
       </nav>
       <a class="nav-switch-btn" onclick="navigateTo('selector')">
@@ -529,7 +537,9 @@
 
     <main class="admin-main" id="clientMain">
       <div class="admin-top-right">
-        <button class="btn btn-ghost btn-sm" onclick="toggleTheme()">🌓</button>
+        <button class="btn btn-ghost btn-sm theme-toggle-btn" id="themeToggleAdmin" onclick="toggleTheme()" title="Toggle theme">
+          <svg class="theme-icon" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>
+        </button>
       </div>
 
       <!-- Client Dashboard -->
@@ -1008,16 +1018,16 @@
       </div>
       <nav class="sidebar-nav">
         <a class="nav-item active" data-tab="cashier-dashboard" onclick="cashierSwitchTab('cashier-dashboard',this)">
-          <span class="nav-icon">📊</span><span class="nav-label">Dashboard</span>
+          <svg class="nav-svg-icon" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"></path><rect x="8" y="2" width="8" height="4" rx="1" ry="1"></rect></svg><span class="nav-label">Dashboard</span>
         </a>
         <a class="nav-item" data-tab="cashier-checkout" onclick="cashierSwitchTab('cashier-checkout',this)">
-          <span class="nav-icon">💳</span><span class="nav-label">Checkout</span>
+          <svg class="nav-svg-icon" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="4" width="22" height="16" rx="2" ry="2"></rect><line x1="1" y1="10" x2="23" y2="10"></line></svg><span class="nav-label">Checkout</span>
         </a>
         <a class="nav-item" data-tab="cashier-inventory" onclick="cashierSwitchTab('cashier-inventory',this)">
-          <span class="nav-icon">📦</span><span class="nav-label">Inventory</span>
+          <svg class="nav-svg-icon" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="16.5" y1="9.4" x2="7.5" y2="4.21"></line><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path><polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline><line x1="12" y1="22.08" x2="12" y2="12"></line></svg><span class="nav-label">Inventory</span>
         </a>
         <a class="nav-item" data-tab="cashier-scan" onclick="cashierSwitchTab('cashier-scan',this)">
-          <span class="nav-icon">📷</span><span class="nav-label">Scan</span>
+          <svg class="nav-svg-icon" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"></path><circle cx="12" cy="13" r="4"></circle></svg><span class="nav-label">Scan</span>
         </a>
       </nav>
       <a class="nav-switch-btn" onclick="navigateTo('selector')">
@@ -1030,7 +1040,9 @@
 
     <main class="admin-main" id="cashierMain">
       <div class="admin-top-right">
-        <button class="btn btn-ghost btn-sm" onclick="toggleTheme()">🌓</button>
+        <button class="btn btn-ghost btn-sm theme-toggle-btn" id="themeToggleCashier" onclick="toggleTheme()" title="Toggle theme">
+          <svg class="theme-icon" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>
+        </button>
       </div>
 
       <!-- Cashier Dashboard -->
@@ -1274,20 +1286,20 @@
     <nav class="cust-bottom-nav" id="custBottomNav">
       <div class="cust-bottom-nav-inner">
         <button class="cust-bnav-btn active" data-tab="shop" onclick="custSwitchTab('shop',this);syncBottomNav(this)">
-          <span class="cust-bnav-icon">🛍</span><span class="cust-bnav-label">Shop</span>
+          <svg class="tab-svg-icon" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"></path><line x1="3" y1="6" x2="21" y2="6"></line><path d="M16 10a4 4 0 0 1-8 0"></path></svg><span class="cust-bnav-label">Shop</span>
         </button>
         <button class="cust-bnav-btn" data-tab="scan" onclick="custSwitchTab('scan',this);syncBottomNav(this)">
-          <span class="cust-bnav-icon">📷</span><span class="cust-bnav-label">Scan</span>
+          <svg class="tab-svg-icon" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"></path><circle cx="12" cy="13" r="4"></circle></svg><span class="cust-bnav-label">Scan</span>
         </button>
         <button class="cust-bnav-btn" data-tab="cart" onclick="custSwitchTab('cart',this);syncBottomNav(this)">
-          <span class="cust-bnav-icon">🛒</span><span class="cust-bnav-label">Cart</span>
+          <svg class="tab-svg-icon" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="21" r="1"></circle><circle cx="20" cy="21" r="1"></circle><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"></path></svg><span class="cust-bnav-label">Cart</span>
           <span class="cust-bnav-badge" id="bnavCartBadge">0</span>
         </button>
         <button class="cust-bnav-btn" data-tab="qr" onclick="custSwitchTab('qr',this);syncBottomNav(this)">
-          <span class="cust-bnav-icon">📱</span><span class="cust-bnav-label">My QR</span>
+          <svg class="tab-svg-icon" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="4" width="22" height="16" rx="2" ry="2"></rect><line x1="1" y1="10" x2="23" y2="10"></line></svg><span class="cust-bnav-label">My QR</span>
         </button>
         <button class="cust-bnav-btn" data-tab="rewards" onclick="custSwitchTab('rewards',this);syncBottomNav(this)">
-          <span class="cust-bnav-icon">⭐</span><span class="cust-bnav-label">Rewards</span>
+          <svg class="tab-svg-icon" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg><span class="cust-bnav-label">Rewards</span>
         </button>
       </div>
     </nav>
@@ -1306,18 +1318,20 @@
           <span id="custWelcome">👋 Guest</span>
           <button class="btn btn-ghost btn-sm" id="custStoreBtn" onclick="switchStore()" style="display:none">🏪 Switch Store</button>
           <button class="btn btn-outline btn-sm" onclick="continueAsGuest()">Login</button>
-          <button class="btn btn-ghost btn-sm" onclick="toggleTheme()">🌓</button>
+          <button class="btn btn-ghost btn-sm theme-toggle-btn" id="themeToggleCust" onclick="toggleTheme()" title="Toggle theme">
+            <svg class="theme-icon" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>
+          </button>
           <button class="btn btn-ghost btn-sm" onclick="navigateTo('selector')">← Exit</button>
         </div>
       </div>
       <div class="cust-tabs-bar">
         <div class="cust-tabs">
-          <button class="cust-tab active" data-tab="shop" onclick="custSwitchTab('shop',this)">🛍 Shop</button>
-          <button class="cust-tab" data-tab="scan" onclick="custSwitchTab('scan',this)">📷 Scan</button>
-          <button class="cust-tab" data-tab="lists" onclick="custSwitchTab('lists',this)">📝 My Lists</button>
-          <button class="cust-tab" data-tab="cart" onclick="custSwitchTab('cart',this)">🛒 Cart <span class="cart-badge" id="cartBadge">0</span></button>
-          <button class="cust-tab" data-tab="qr" onclick="custSwitchTab('qr',this)">📱 My QR</button>
-          <button class="cust-tab" data-tab="rewards" onclick="custSwitchTab('rewards',this)">⭐ Rewards</button>
+          <button class="cust-tab active" data-tab="shop" onclick="custSwitchTab('shop',this)"><svg class="tab-svg-icon" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"></path><line x1="3" y1="6" x2="21" y2="6"></line><path d="M16 10a4 4 0 0 1-8 0"></path></svg> Shop</button>
+          <button class="cust-tab" data-tab="scan" onclick="custSwitchTab('scan',this)"><svg class="tab-svg-icon" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"></path><circle cx="12" cy="13" r="4"></circle></svg> Scan</button>
+          <button class="cust-tab" data-tab="lists" onclick="custSwitchTab('lists',this)"><svg class="tab-svg-icon" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="8" y1="6" x2="21" y2="6"></line><line x1="8" y1="12" x2="21" y2="12"></line><line x1="8" y1="18" x2="21" y2="18"></line><line x1="3" y1="6" x2="3.01" y2="6"></line><line x1="3" y1="12" x2="3.01" y2="12"></line><line x1="3" y1="18" x2="3.01" y2="18"></line></svg> My Lists</button>
+          <button class="cust-tab" data-tab="cart" onclick="custSwitchTab('cart',this)"><svg class="tab-svg-icon" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="21" r="1"></circle><circle cx="20" cy="21" r="1"></circle><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"></path></svg> Cart <span class="cart-badge" id="cartBadge">0</span></button>
+          <button class="cust-tab" data-tab="qr" onclick="custSwitchTab('qr',this)"><svg class="tab-svg-icon" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="4" width="22" height="16" rx="2" ry="2"></rect><line x1="1" y1="10" x2="23" y2="10"></line></svg> My QR</button>
+          <button class="cust-tab" data-tab="rewards" onclick="custSwitchTab('rewards',this)"><svg class="tab-svg-icon" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg> Rewards</button>
         </div>
       </div>
     </header>

@@ -663,10 +663,10 @@
   color: var(--green);
 }
 
-.unified-role-btn.dev-role:hover      { border-color: #4ade80; background: rgba(74,222,128,0.07); color: #4ade80; box-shadow: 0 0 0 2px rgba(74,222,128,0.12), 0 4px 12px rgba(74,222,128,0.12); }
-.unified-role-btn.client-role:hover   { border-color: #60a5fa; background: rgba(96,165,250,0.07); color: #60a5fa; box-shadow: 0 0 0 2px rgba(96,165,250,0.12), 0 4px 12px rgba(96,165,250,0.12); }
-.unified-role-btn.cashier-role:hover  { border-color: #f87171; background: rgba(248,113,113,0.07); color: #f87171; box-shadow: 0 0 0 2px rgba(248,113,113,0.12), 0 4px 12px rgba(248,113,113,0.12); }
-.unified-role-btn.customer-role:hover { border-color: #c084fc; background: rgba(192,132,252,0.07); color: #c084fc; box-shadow: 0 0 0 2px rgba(192,132,252,0.12), 0 4px 12px rgba(192,132,252,0.12); }
+.unified-role-btn.dev-role:hover      { border-color: #60a5fa; background: rgba(96,165,250,0.07); color: #60a5fa; box-shadow: 0 0 0 2px rgba(96,165,250,0.12), 0 4px 12px rgba(96,165,250,0.12); }
+.unified-role-btn.client-role:hover   { border-color: #4ade80; background: rgba(74,222,128,0.07); color: #4ade80; box-shadow: 0 0 0 2px rgba(74,222,128,0.12), 0 4px 12px rgba(74,222,128,0.12); }
+.unified-role-btn.cashier-role:hover  { border-color: #fbbf24; background: rgba(251,191,36,0.07); color: #fbbf24; box-shadow: 0 0 0 2px rgba(251,191,36,0.12), 0 4px 12px rgba(251,191,36,0.12); }
+.unified-role-btn.customer-role:hover { border-color: #f87171; background: rgba(248,113,113,0.07); color: #f87171; box-shadow: 0 0 0 2px rgba(248,113,113,0.12), 0 4px 12px rgba(248,113,113,0.12); }
 .unified-role-btn.guest-role:hover    { border-color: var(--border-strong); background: var(--surface-2); color: var(--text-2); }
 
 .role-chevron {
@@ -721,10 +721,10 @@
 }
 
 /* Per-role tint */
-.dev-svg      { background: #1a2e25; color: #4ade80; border: 1.5px solid rgba(74,222,128,0.30); }
-.client-svg   { background: #1a2535; color: #60a5fa; border: 1.5px solid rgba(96,165,250,0.30); }
-.cashier-svg  { background: #2a1010; color: #f87171; border: 1.5px solid rgba(248,113,113,0.30); }
-.customer-svg { background: #1f1a2e; color: #c084fc; border: 1.5px solid rgba(192,132,252,0.30); }
+.dev-svg      { background: #1a2535; color: #60a5fa; border: 1.5px solid rgba(96,165,250,0.30); }
+.client-svg   { background: #1a2e25; color: #4ade80; border: 1.5px solid rgba(74,222,128,0.30); }
+.cashier-svg  { background: #2a1f10; color: #fbbf24; border: 1.5px solid rgba(251,191,36,0.30); }
+.customer-svg { background: #2a1010; color: #f87171; border: 1.5px solid rgba(248,113,113,0.30); }
 
 /* ── Auth form field spacing ── */
 #unifiedLoginForm .form-group,
