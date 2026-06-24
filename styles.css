@@ -15,7 +15,7 @@
   position: fixed;
   inset: 0;
   z-index: 99999;
-  background: #dde6f3;
+  background: #ffffff;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -28,11 +28,12 @@
 }
 
 #splash-card {
-  width: min(80vw, 80vh, 420px);
-  height: min(80vw, 80vh, 420px);
+  width: min(72vw, 72vh);
+  height: min(72vw, 72vh);
   background: #ffffff;
-  border-radius: 36px;
-  box-shadow: 0 8px 40px rgba(0,0,0,0.13);
+  border-radius: 32px;
+  border: 2px solid #16734a;
+  box-shadow: 0 8px 40px rgba(22,115,74,0.15);
   overflow: hidden;
   display: flex;
   align-items: center;
