@@ -8,6 +8,32 @@
    Inter          — body copy: the gold standard for screen legibility across dashboards and storefronts.
    Archivo        — data/numbers: tabular figures, crisp mono-width digits, ideal for prices and stats. */
 
+/* ============================================================
+   SPLASH SCREEN
+   ============================================================ */
+#splash-screen {
+  position: fixed;
+  inset: 0;
+  z-index: 99999;
+  background: #000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: opacity 0.55s ease;
+}
+
+#splash-screen.splash-fade-out {
+  opacity: 0;
+  pointer-events: none;
+}
+
+#splash-video {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  display: block;
+}
+
 /* ── CSS Tokens ── */
 :root {
   /* ── Green Theme (based on #16734A / #1C1C1C / #FFFFFF / #C3EADF) ── */

@@ -32,6 +32,7 @@
     .theme-icon { display: block; pointer-events: none; }
     .tab-svg-icon { display: inline-block; vertical-align: middle; flex-shrink: 0; pointer-events: none; position: relative; top: -1px; }
     .nav-svg-icon { display: block; flex-shrink: 0; pointer-events: none; width: 20px; height: 20px; }
+    .pw-eye-icon { display: block; pointer-events: none; }
     .cust-tab { display: inline-flex; align-items: center; gap: 6px; }
     .cust-bnav-btn { display: flex; flex-direction: column; align-items: center; gap: 3px; }
     .store-select-icon-img {
@@ -47,6 +48,60 @@
   </style>
 </head>
 <body class="dark-theme">
+
+<!-- ═══════════════════════════════════════════
+     SPLASH SCREEN
+═══════════════════════════════════════════ -->
+<div id="splash-screen" aria-hidden="true">
+  <video
+    id="splash-video"
+    src="assets/DashUp Logo Animation.mp4"
+    autoplay
+    muted
+    playsinline
+    preload="auto"
+  ></video>
+</div>
+
+<script>
+  (function () {
+    var splash = document.getElementById('splash-screen');
+    var video  = document.getElementById('splash-video');
+    var done   = false;
+
+    function dismiss() {
+      if (done) return;
+      done = true;
+      splash.classList.add('splash-fade-out');
+      splash.addEventListener('transitionend', function () {
+        splash.style.display = 'none';
+      }, { once: true });
+      /* Fallback if transitionend never fires */
+      setTimeout(function () { splash.style.display = 'none'; }, 800);
+    }
+
+    /* Dismiss when video ends */
+    video.addEventListener('ended', dismiss);
+
+    /* Safety net: dismiss after 6 s even if video stalls */
+    var timeout = setTimeout(dismiss, 6000);
+
+    /* If video can't load at all (e.g. wrong path), dismiss immediately */
+    video.addEventListener('error', function () {
+      clearTimeout(timeout);
+      dismiss();
+    });
+
+    /* If video loads but autoplay is blocked, dismiss immediately */
+    var playPromise = video.play();
+    if (playPromise !== undefined) {
+      playPromise.catch(function () {
+        clearTimeout(timeout);
+        dismiss();
+      });
+    }
+  })();
+</script>
 
 <!-- Toast container -->
 <div id="toast-container"></div>
@@ -150,9 +205,7 @@
                 <input class="form-input" id="authPassword" type="password"
                        placeholder="Enter password" autocomplete="current-password"
                        onkeydown="if(event.key==='Enter')unifiedAttemptLogin()" />
-                <button onclick="togglePasswordVisibility()"
-                        style="position:absolute;right:12px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;color:var(--gray-400);font-size:16px"
-                        title="Show/hide password">👁</button>
+                <button id="pwToggleMain" onclick="togglePasswordVisibility()" style="position:absolute;right:12px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;color:var(--text-3);display:inline-flex;align-items:center;justify-content:center;padding:2px" title="Show/hide password"><svg class="pw-eye-icon" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path><line x1="1" y1="1" x2="23" y2="23"></line></svg></button>
               </div>
             </div>
           </div>
@@ -2233,7 +2286,7 @@ document.addEventListener('DOMContentLoaded', () => {
         <label class="form-label">Password *</label>
         <div style="position:relative">
           <input class="form-input" id="regMPass" type="password" placeholder="Create a password" />
-          <button onclick="toggleRegPass('regMPass')" style="position:absolute;right:12px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;color:var(--gray-400);font-size:15px" title="Show/hide">👁</button>
+          <button id="pwToggleRegM" onclick="toggleRegPass('regMPass')" style="position:absolute;right:12px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;color:var(--text-3);display:inline-flex;align-items:center;justify-content:center;padding:2px" title="Show/hide"><svg class="pw-eye-icon" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path><line x1="1" y1="1" x2="23" y2="23"></line></svg></button>
         </div>
       </div>
       <div class="form-group" style="margin-bottom:20px">
@@ -2265,7 +2318,7 @@ document.addEventListener('DOMContentLoaded', () => {
         <label class="form-label">Password *</label>
         <div style="position:relative">
           <input class="form-input" id="regCPass" type="password" placeholder="Create a secure password" />
-          <button onclick="toggleRegPass('regCPass')" style="position:absolute;right:12px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;color:var(--gray-400);font-size:15px" title="Show/hide">👁</button>
+          <button id="pwToggleRegC" onclick="toggleRegPass('regCPass')" style="position:absolute;right:12px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;color:var(--text-3);display:inline-flex;align-items:center;justify-content:center;padding:2px" title="Show/hide"><svg class="pw-eye-icon" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path><line x1="1" y1="1" x2="23" y2="23"></line></svg></button>
         </div>
       </div>
       <div class="form-group" style="margin-bottom:12px">
