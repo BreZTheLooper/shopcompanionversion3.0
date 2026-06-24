@@ -73,33 +73,38 @@
       if (done) return;
       done = true;
       splash.classList.add('splash-fade-out');
-      splash.addEventListener('transitionend', function () {
-        splash.style.display = 'none';
-      }, { once: true });
-      /* Fallback if transitionend never fires */
-      setTimeout(function () { splash.style.display = 'none'; }, 800);
+      setTimeout(function () { splash.style.display = 'none'; }, 600);
     }
 
-    /* Dismiss when video ends */
-    video.addEventListener('ended', dismiss);
+    /* Primary: poll every 100ms to detect video end (most reliable cross-browser) */
+    var poll = setInterval(function () {
+      if (!video.duration) return;
+      if (video.currentTime >= video.duration - 0.2 || video.ended) {
+        clearInterval(poll);
+        dismiss();
+      }
+    }, 100);
 
-    /* Safety net: dismiss after 6 s even if video stalls */
-    var timeout = setTimeout(dismiss, 6000);
-
-    /* If video can't load at all (e.g. wrong path), dismiss immediately */
-    video.addEventListener('error', function () {
-      clearTimeout(timeout);
-      dismiss();
+    /* Secondary: fire exactly when duration is known + add 400ms buffer */
+    video.addEventListener('loadedmetadata', function () {
+      var dur = video.duration;
+      if (isFinite(dur) && dur > 0) {
+        setTimeout(function () { clearInterval(poll); dismiss(); }, dur * 1000 + 400);
+      }
     });
 
-    /* If video loads but autoplay is blocked, dismiss immediately */
-    var playPromise = video.play();
-    if (playPromise !== undefined) {
-      playPromise.catch(function () {
-        clearTimeout(timeout);
-        dismiss();
-      });
-    }
+    /* Tertiary: ended event */
+    video.addEventListener('ended', function () { clearInterval(poll); dismiss(); });
+
+    /* Error fallback */
+    video.addEventListener('error', function () { clearInterval(poll); dismiss(); });
+
+    /* Autoplay blocked fallback */
+    var p = video.play();
+    if (p) p.catch(function () { clearInterval(poll); dismiss(); });
+
+    /* Nuclear fallback: 5.5s hard cap no matter what */
+    setTimeout(function () { clearInterval(poll); dismiss(); }, 5500);
   })();
 </script>
 
