@@ -69,7 +69,7 @@
     var video  = document.getElementById('splash-video');
     var done   = false;
 
-    /* Force mute via JS — required for autoplay on desktop Chrome */
+    /* Force mute — desktop Chrome requires this for autoplay */
     video.muted = true;
     video.volume = 0;
 
@@ -80,7 +80,7 @@
       setTimeout(function () { splash.style.display = 'none'; }, 600);
     }
 
-    /* Primary: poll every 100ms to detect video end (most reliable cross-browser) */
+    /* Poll every 100ms — most reliable cross-browser end detection */
     var poll = setInterval(function () {
       if (!video.duration) return;
       if (video.currentTime >= video.duration - 0.2 || video.ended) {
@@ -89,26 +89,30 @@
       }
     }, 100);
 
-    /* Secondary: fire exactly when duration is known + add 400ms buffer */
+    /* Once metadata loads, set a precise timer as backup */
     video.addEventListener('loadedmetadata', function () {
       var dur = video.duration;
       if (isFinite(dur) && dur > 0) {
-        setTimeout(function () { clearInterval(poll); dismiss(); }, dur * 1000 + 400);
+        setTimeout(function () { clearInterval(poll); dismiss(); }, dur * 1000 + 500);
       }
     });
 
-    /* Tertiary: ended event */
     video.addEventListener('ended', function () { clearInterval(poll); dismiss(); });
-
-    /* Error fallback */
     video.addEventListener('error', function () { clearInterval(poll); dismiss(); });
 
-    /* Autoplay blocked fallback */
-    var p = video.play();
-    if (p) p.catch(function () { clearInterval(poll); dismiss(); });
+    /* Hard cap at 6s no matter what */
+    setTimeout(function () { clearInterval(poll); dismiss(); }, 6000);
 
-    /* Nuclear fallback: 5.5s hard cap no matter what */
-    setTimeout(function () { clearInterval(poll); dismiss(); }, 5500);
+    /* load() then play() — fixes desktop Chrome not starting */
+    video.load();
+    var p = video.play();
+    if (p !== undefined) {
+      p.catch(function (err) {
+        /* Autoplay truly blocked — dismiss immediately so app isn't stuck */
+        clearInterval(poll);
+        dismiss();
+      });
+    }
   })();
 </script>
 
