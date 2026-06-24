@@ -69,6 +69,10 @@
     var video  = document.getElementById('splash-video');
     var done   = false;
 
+    /* Force mute via JS — required for autoplay on desktop Chrome */
+    video.muted = true;
+    video.volume = 0;
+
     function dismiss() {
       if (done) return;
       done = true;
