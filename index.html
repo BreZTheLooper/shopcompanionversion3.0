@@ -103,16 +103,15 @@
     /* Hard cap at 6s no matter what */
     setTimeout(function () { clearInterval(poll); dismiss(); }, 6000);
 
-    /* load() then play() — fixes desktop Chrome not starting */
+    /* Wait for canplay before calling play() — fixes desktop Chrome race condition */
+    video.addEventListener('canplay', function () {
+      var p = video.play();
+      if (p !== undefined) {
+        p.catch(function () { clearInterval(poll); dismiss(); });
+      }
+    }, { once: true });
+
     video.load();
-    var p = video.play();
-    if (p !== undefined) {
-      p.catch(function (err) {
-        /* Autoplay truly blocked — dismiss immediately so app isn't stuck */
-        clearInterval(poll);
-        dismiss();
-      });
-    }
   })();
 </script>
 

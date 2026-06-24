@@ -15,7 +15,7 @@
   position: fixed;
   inset: 0;
   z-index: 99999;
-  background: #ffffff;
+  background: #e8e8e8;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -32,6 +32,7 @@
   height: 100vmin;
   object-fit: contain;
   display: block;
+  background: #e8e8e8;
 }
 
 /* ── CSS Tokens ── */
