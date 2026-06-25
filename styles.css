@@ -30,7 +30,7 @@
 #splash-card {
   width: min(72vw, 72vh);
   height: min(72vw, 72vh);
-  background: #ffffff;
+  background: radial-gradient(circle, #ffffff 60%, #f9f9f9 100%);
   border-radius: 32px;
   border: 2px solid #ffffff;
   overflow: hidden;
