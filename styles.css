@@ -15,7 +15,8 @@
   position: fixed;
   inset: 0;
   z-index: 99999;
-  background: #ffffff;
+  /* Use the exact off-white/gray color that the video's outer corners fade into */
+  background-color: #f4f4f4; 
   display: flex;
   align-items: center;
   justify-content: center;
@@ -28,21 +29,23 @@
 }
 
 #splash-card {
-  width: min(72vw, 72vh);
-  height: min(72vw, 72vh);
-  background: radial-gradient(circle, #ffffff 60%, #f9f9f9 100%);
-  border-radius: 32px;
-  border: 2px solid #ffffff;
-  overflow: hidden;
+  /* Let the card act purely as a centering frame without clipping the video */
+  background: transparent;
+  border: none;
   display: flex;
   align-items: center;
   justify-content: center;
+  
+  /* Give the video container a defined responsive scale instead of forcing full screen */
+  width: min(80vw, 450px);
+  height: min(80vw, 450px);
 }
 
 #splash-video {
   width: 100%;
   height: 100%;
-  object-fit: cover;
+  /* 'contain' ensures the video's natural boundaries don't distort or clip */
+  object-fit: contain; 
   display: block;
 }
 
