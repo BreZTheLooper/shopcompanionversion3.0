@@ -15,8 +15,8 @@
   position: fixed;
   inset: 0;
   z-index: 99999;
-  /* Use the exact off-white/gray color that the video's outer corners fade into */
-  background-color: #f4f4f4; 
+  /* Set this to pure white so the blend mode works perfectly */
+  background: #ffffff; 
   display: flex;
   align-items: center;
   justify-content: center;
@@ -29,14 +29,11 @@
 }
 
 #splash-card {
-  /* Let the card act purely as a centering frame without clipping the video */
   background: transparent;
   border: none;
   display: flex;
   align-items: center;
   justify-content: center;
-  
-  /* Give the video container a defined responsive scale instead of forcing full screen */
   width: min(80vw, 450px);
   height: min(80vw, 450px);
 }
@@ -44,9 +41,14 @@
 #splash-video {
   width: 100%;
   height: 100%;
-  /* 'contain' ensures the video's natural boundaries don't distort or clip */
-  object-fit: contain; 
+  object-fit: contain;
   display: block;
+  
+  /* FIX: This knocks out the white/off-white background of the video frames */
+  mix-blend-mode: multiply;
+  
+  /* OPTIONAL alternative if multiply makes the green colors look slightly altered:
+     contrast(1.1) can help sharpen the boundaries. But start with mix-blend-mode first. */
 }
 
 /* ── CSS Tokens ── */
