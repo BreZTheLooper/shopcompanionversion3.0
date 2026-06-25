@@ -39,29 +39,24 @@
   justify-content: center;
   width: min(72vw, 420px);
   height: min(72vw, 420px);
-  /* Soft ambient base shadow, always present */
-  box-shadow:
-    0 0 0 1px rgba(22, 115, 74, 0.08),
-    0 8px 40px rgba(22, 115, 74, 0.10),
-    0 2px 8px rgba(0,0,0,0.04);
+  box-shadow: 0 4px 24px rgba(22, 115, 74, 0.07);
 }
 
-/* The conic-gradient ring that sweeps around the card border */
+/* Sweeping ring outline */
 #splash-card::before {
   content: '';
   position: absolute;
-  inset: -3px;
-  border-radius: 27px; /* 24 + 3 */
-  padding: 3px;
-  /* conic sweep: brand green travels clockwise */
+  inset: -2px;
+  border-radius: 26px;
+  padding: 2px;
   background: conic-gradient(
     from var(--splash-angle, 0deg),
     transparent 0deg,
-    transparent 200deg,
-    #22c36e 240deg,
+    transparent 210deg,
+    rgba(34, 195, 110, 0.5) 245deg,
     #16734a 270deg,
-    #22c36e 300deg,
-    transparent 340deg,
+    rgba(34, 195, 110, 0.5) 295deg,
+    transparent 330deg,
     transparent 360deg
   );
   -webkit-mask:
@@ -71,28 +66,6 @@
   mask-composite: exclude;
   animation: splash-ring-spin 5s linear infinite;
   pointer-events: none;
-}
-
-/* Bloom: a diffuse glow that follows the sweep position */
-#splash-card::after {
-  content: '';
-  position: absolute;
-  inset: -36px;
-  border-radius: 60px;
-  background: conic-gradient(
-    from var(--splash-angle, 0deg),
-    transparent 0deg,
-    transparent 220deg,
-    rgba(34, 195, 110, 0.18) 255deg,
-    rgba(22, 115, 74, 0.30) 270deg,
-    rgba(34, 195, 110, 0.18) 285deg,
-    transparent 320deg,
-    transparent 360deg
-  );
-  filter: blur(20px);
-  animation: splash-ring-spin 5s linear infinite;
-  pointer-events: none;
-  z-index: -1;
 }
 
 @keyframes splash-ring-spin {
