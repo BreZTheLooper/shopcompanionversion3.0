@@ -11,16 +11,16 @@
 /* ============================================================
    SPLASH SCREEN
    ============================================================ */
+/* ── Splash Screen ── */
 #splash-screen {
   position: fixed;
   inset: 0;
   z-index: 99999;
-  /* Set this to pure white so the blend mode works perfectly */
-  background: #ffffff; 
+  background: #ffffff;
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: opacity 0.55s ease;
+  transition: opacity 0.7s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 #splash-screen.splash-fade-out {
@@ -28,27 +28,97 @@
   pointer-events: none;
 }
 
+/* Card shell */
 #splash-card {
-  background: transparent;
-  border: none;
+  position: relative;
+  z-index: 1;
+  background: #ffffff;
+  border-radius: 24px;
   display: flex;
   align-items: center;
   justify-content: center;
-  width: min(80vw, 450px);
-  height: min(80vw, 450px);
+  width: min(72vw, 420px);
+  height: min(72vw, 420px);
+  /* Soft ambient base shadow, always present */
+  box-shadow:
+    0 0 0 1px rgba(22, 115, 74, 0.08),
+    0 8px 40px rgba(22, 115, 74, 0.10),
+    0 2px 8px rgba(0,0,0,0.04);
+}
+
+/* The conic-gradient ring that sweeps around the card border */
+#splash-card::before {
+  content: '';
+  position: absolute;
+  inset: -3px;
+  border-radius: 27px; /* 24 + 3 */
+  padding: 3px;
+  /* conic sweep: brand green travels clockwise */
+  background: conic-gradient(
+    from var(--splash-angle, 0deg),
+    transparent 0deg,
+    transparent 200deg,
+    #22c36e 240deg,
+    #16734a 270deg,
+    #22c36e 300deg,
+    transparent 340deg,
+    transparent 360deg
+  );
+  -webkit-mask:
+    linear-gradient(#fff 0 0) content-box,
+    linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  animation: splash-ring-spin 5s linear infinite;
+  pointer-events: none;
+}
+
+/* Bloom: a diffuse glow that follows the sweep position */
+#splash-card::after {
+  content: '';
+  position: absolute;
+  inset: -36px;
+  border-radius: 60px;
+  background: conic-gradient(
+    from var(--splash-angle, 0deg),
+    transparent 0deg,
+    transparent 220deg,
+    rgba(34, 195, 110, 0.18) 255deg,
+    rgba(22, 115, 74, 0.30) 270deg,
+    rgba(34, 195, 110, 0.18) 285deg,
+    transparent 320deg,
+    transparent 360deg
+  );
+  filter: blur(20px);
+  animation: splash-ring-spin 5s linear infinite;
+  pointer-events: none;
+  z-index: -1;
+}
+
+@keyframes splash-ring-spin {
+  from { --splash-angle: 0deg; }
+  to   { --splash-angle: 360deg; }
+}
+
+/* Register the custom property so the browser can interpolate it */
+@property --splash-angle {
+  syntax: '<angle>';
+  inherits: false;
+  initial-value: 0deg;
 }
 
 #splash-video {
-  width: 100%;
-  height: 100%;
+  width: 88%;
+  height: 88%;
   object-fit: contain;
   display: block;
-  
-  /* FIX: This knocks out the white/off-white background of the video frames */
+  border-radius: 16px;
   mix-blend-mode: multiply;
-  
-  /* OPTIONAL alternative if multiply makes the green colors look slightly altered:
-     contrast(1.1) can help sharpen the boundaries. But start with mix-blend-mode first. */
+}
+
+@media (prefers-reduced-motion: reduce) {
+  #splash-card::before,
+  #splash-card::after { animation: none; }
 }
 
 /* ── CSS Tokens ── */
